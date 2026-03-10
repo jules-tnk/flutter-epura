@@ -1,0 +1,98 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "epura",
+
+  "notificationTitle": "Time to clean up!",
+  "notificationBody": "You have new files to review",
+
+  "storageAccessNeeded": "Storage access needed",
+  "storageAccessExplanation": "Epura needs permission to access your files so you can review them.",
+  "grantAccess": "Grant Access",
+  "openSettings": "Open Settings",
+
+  "filesToReview": "{count} files to review",
+  "@filesToReview": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "photos": "Photos",
+  "videos": "Videos",
+  "downloads": "Downloads",
+  "startReview": "Start Review",
+  "stats": "Stats",
+
+  "leaveReview": "Leave review?",
+  "leaveReviewMessage": "Your progress in this session will be lost.",
+  "cancel": "Cancel",
+  "leave": "Leave",
+  "skipForLater": "Skip for later",
+
+  "photo": "Photo",
+  "video": "Video",
+  "download": "Download",
+  "delete": "Delete",
+  "keep": "Keep",
+
+  "allDone": "All done!",
+  "kept": "Kept",
+  "deleted": "Deleted",
+  "skipped": "Skipped",
+  "storageFreed": "Storage freed",
+  "motivationalMessage": "Great job keeping your device clean!",
+  "viewStats": "View Stats",
+  "goHome": "Go Home",
+
+  "settings": "Settings",
+  "notifications": "Notifications",
+  "dailyCleanupReminder": "Daily cleanup reminder",
+  "reminderTime": "Reminder time",
+  "fileTypesToScan": "File types to scan",
+  "about": "About",
+  "version": "Version {version}",
+  "@version": {
+    "placeholders": {
+      "version": { "type": "String" }
+    }
+  },
+
+  "totalStorageFreed": "Total storage freed",
+  "freedThisWeek": "Freed this week",
+  "last7Days": "Last 7 days",
+  "streak": "Streak",
+  "streakDays": "{count} days",
+  "@streakDays": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "filesReviewed": "Files reviewed",
+  "totalReviewed": "Total reviewed",
+  "sessionHistory": "Session history",
+  "filesReviewedCount": "{count} files reviewed",
+  "@filesReviewedCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "allClean": "All clean!",
+  "noFilesToReview": "No files to review right now. Check back later.",
+
+  "language": "Language",
+  "systemDefault": "System",
+  "english": "English",
+  "french": "Français",
+
+  "howFarBack": "How far back?",
+  "sinceLastReview": "Since last review",
+  "nDays": "{count} days",
+  "@nDays": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "oneDay": "1 day"
+}

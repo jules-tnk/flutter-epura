@@ -1,0 +1,73 @@
+{
+  "@@locale": "fr",
+
+  "appTitle": "epura",
+
+  "notificationTitle": "C'est l'heure du tri !",
+  "notificationBody": "Vous avez de nouveaux fichiers à examiner",
+
+  "storageAccessNeeded": "Accès au stockage requis",
+  "storageAccessExplanation": "Epura a besoin de l'autorisation d'accéder à vos fichiers pour les examiner.",
+  "grantAccess": "Autoriser l'accès",
+  "openSettings": "Ouvrir les paramètres",
+
+  "filesToReview": "{count} fichiers à examiner",
+
+  "photos": "Photos",
+  "videos": "Vidéos",
+  "downloads": "Téléchargements",
+  "startReview": "Commencer l'examen",
+  "stats": "Statistiques",
+
+  "leaveReview": "Quitter l'examen ?",
+  "leaveReviewMessage": "Votre progression dans cette session sera perdue.",
+  "cancel": "Annuler",
+  "leave": "Quitter",
+  "skipForLater": "Passer pour plus tard",
+
+  "photo": "Photo",
+  "video": "Vidéo",
+  "download": "Téléchargement",
+  "delete": "Supprimer",
+  "keep": "Garder",
+
+  "allDone": "Terminé !",
+  "kept": "Gardés",
+  "deleted": "Supprimés",
+  "skipped": "Passés",
+  "storageFreed": "Espace libéré",
+  "motivationalMessage": "Bravo, votre appareil est bien rangé !",
+  "viewStats": "Voir les statistiques",
+  "goHome": "Retour à l'accueil",
+
+  "settings": "Paramètres",
+  "notifications": "Notifications",
+  "dailyCleanupReminder": "Rappel quotidien de nettoyage",
+  "reminderTime": "Heure du rappel",
+  "fileTypesToScan": "Types de fichiers à analyser",
+  "about": "À propos",
+  "version": "Version {version}",
+
+  "totalStorageFreed": "Espace total libéré",
+  "freedThisWeek": "Libéré cette semaine",
+  "last7Days": "7 derniers jours",
+  "streak": "Série",
+  "streakDays": "{count} jours",
+  "filesReviewed": "Fichiers examinés",
+  "totalReviewed": "Total examinés",
+  "sessionHistory": "Historique des sessions",
+  "filesReviewedCount": "{count} fichiers examinés",
+
+  "allClean": "Tout est propre !",
+  "noFilesToReview": "Aucun fichier à examiner pour le moment. Revenez plus tard.",
+
+  "language": "Langue",
+  "systemDefault": "Système",
+  "english": "English",
+  "french": "Français",
+
+  "howFarBack": "Sur quelle période ?",
+  "sinceLastReview": "Depuis le dernier examen",
+  "nDays": "{count} jours",
+  "oneDay": "1 jour"
+}
