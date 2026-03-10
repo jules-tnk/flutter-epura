@@ -1,0 +1,193 @@
+<h2>Epura — Full App Design Overview</h2>
+<p class="subtitle">Complete architecture with all 5 screens and data flow</p>
+
+<div class="section">
+  <h3>App Architecture</h3>
+  <div class="mockup">
+    <div class="mockup-header">Screen Flow & Data Architecture</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 12px; line-height: 1.6;">
+      <pre style="margin:0; white-space:pre-wrap;">
+                    ┌──────────────┐
+                    │  NOTIFICATION │
+                    │  (scheduled)  │
+                    └──────┬───────┘
+                           │ tap
+                           ▼
+┌─────────┐     ┌──────────────┐     ┌──────────────┐
+│SETTINGS │◀───▶│    HOME      │────▶│   REVIEW     │
+│         │     │              │     │  (swipe cards)│
+│Reminder │     │ Files to     │     │              │
+│ time    │     │ review: 12   │     │ Info-First   │
+│File types│    │              │     │ layout       │
+│         │     │ [Start ▶]    │     │ ← 🗑️  ♥ →   │
+└─────────┘     │              │     └──────┬───────┘
+                │ [Stats 📊]   │            │ all done
+                └──────┬───────┘            ▼
+                       │          ┌──────────────┐
+                       │          │   SUMMARY    │
+                       │          │              │
+                       │          │ Kept: 8      │
+                       │          │ Deleted: 4   │
+                       │          │ Freed: 45MB  │
+                       ▼          └──────┬───────┘
+                ┌──────────────┐         │
+                │    STATS     │◀────────┘
+                │              │
+                │ Weekly chart │
+                │ Total freed  │
+                │ Review streak│
+                └──────────────┘
+
+DATA LAYER:
+┌────────────────────────────────────────────┐
+│  Provider                                  │
+│  ├── FileService (scan photos/videos/dl)   │
+│  ├── ReviewProvider (swipe state, queue)    │
+│  ├── StatsProvider (history, aggregation)   │
+│  └── SettingsProvider (prefs, reminder)     │
+│                                            │
+│  Local Storage: SharedPreferences + SQLite │
+│  File Access: photo_manager + path_provider│
+│  Notifications: flutter_local_notifications│
+└────────────────────────────────────────────┘
+      </pre>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Screen Details</h3>
+
+  <div class="split">
+    <div class="mockup">
+      <div class="mockup-header">1. Home Screen</div>
+      <div class="mockup-body" style="font-family: monospace; font-size: 11px; line-height: 1.5;">
+        <pre style="margin:0; white-space:pre-wrap;">
+┌────────────────────┐
+│                  ⚙️│
+│                    │
+│      epura         │
+│                    │
+│  ┌──────────────┐  │
+│  │ 📷 8 photos  │  │
+│  │ 🎬 3 videos  │  │
+│  │ 📁 1 file    │  │
+│  │              │  │
+│  │  12 items    │  │
+│  │  to review   │  │
+│  └──────────────┘  │
+│                    │
+│  ┌──────────────┐  │
+│  │  Start ▶     │  │
+│  └──────────────┘  │
+│                    │
+│  ┌──────────────┐  │
+│  │  📊 Stats    │  │
+│  └──────────────┘  │
+│                    │
+└────────────────────┘
+        </pre>
+      </div>
+    </div>
+    <div class="mockup">
+      <div class="mockup-header">2. Review Screen</div>
+      <div class="mockup-body" style="font-family: monospace; font-size: 11px; line-height: 1.5;">
+        <pre style="margin:0; white-space:pre-wrap;">
+┌────────────────────┐
+│ ← Review   3/12   │
+│                    │
+│ IMG_2024.jpg       │
+│ 3.2 MB · Today     │
+│ Photos             │
+│ ─────────────────  │
+│ ┌────────────────┐ │
+│ │                │ │
+│ │   [preview]    │ │
+│ │                │ │
+│ │                │ │
+│ └────────────────┘ │
+│                    │
+│  🗑️ Delete   Keep ♥│
+│                    │
+│ ← swipe L    R →  │
+│                    │
+│ [Skip for later]   │
+└────────────────────┘
+        </pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="split" style="margin-top: 16px;">
+    <div class="mockup">
+      <div class="mockup-header">3. Summary Screen</div>
+      <div class="mockup-body" style="font-family: monospace; font-size: 11px; line-height: 1.5;">
+        <pre style="margin:0; white-space:pre-wrap;">
+┌────────────────────┐
+│                    │
+│     ✓ All done!    │
+│                    │
+│  ┌──────────────┐  │
+│  │ Kept:    8   │  │
+│  │ Deleted: 4   │  │
+│  │ Skipped: 0   │  │
+│  │              │  │
+│  │ Freed: 45 MB │  │
+│  └──────────────┘  │
+│                    │
+│  "Great job keeping │
+│   your storage     │
+│   clean!"          │
+│                    │
+│  [View Stats 📊]   │
+│  [Go Home]         │
+│                    │
+└────────────────────┘
+        </pre>
+      </div>
+    </div>
+    <div class="mockup">
+      <div class="mockup-header">4. Stats Screen</div>
+      <div class="mockup-body" style="font-family: monospace; font-size: 11px; line-height: 1.5;">
+        <pre style="margin:0; white-space:pre-wrap;">
+┌────────────────────┐
+│ ← Stats            │
+│                    │
+│ Total Freed        │
+│ ████████ 1.2 GB    │
+│                    │
+│ This Week          │
+│ ██░░░░░░ 120 MB    │
+│                    │
+│ Review Streak 🔥   │
+│ 7 days             │
+│                    │
+│ Files Reviewed     │
+│ 342 total          │
+│ 180 kept           │
+│ 162 deleted        │
+│                    │
+│ History            │
+│ Mar 10 - 12 files  │
+│ Mar 9  - 8 files   │
+│ Mar 8  - 15 files  │
+└────────────────────┘
+        </pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Key Packages</h3>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px;">
+    <div style="padding: 8px; background: rgba(0,0,0,0.05); border-radius: 6px;"><strong>provider</strong> — state management</div>
+    <div style="padding: 8px; background: rgba(0,0,0,0.05); border-radius: 6px;"><strong>photo_manager</strong> — access photos/videos</div>
+    <div style="padding: 8px; background: rgba(0,0,0,0.05); border-radius: 6px;"><strong>flutter_local_notifications</strong> — reminders</div>
+    <div style="padding: 8px; background: rgba(0,0,0,0.05); border-radius: 6px;"><strong>sqflite</strong> — review history DB</div>
+    <div style="padding: 8px; background: rgba(0,0,0,0.05); border-radius: 6px;"><strong>shared_preferences</strong> — settings</div>
+    <div style="padding: 8px; background: rgba(0,0,0,0.05); border-radius: 6px;"><strong>path_provider</strong> — downloads folder</div>
+    <div style="padding: 8px; background: rgba(0,0,0,0.05); border-radius: 6px;"><strong>fl_chart</strong> — stats charts</div>
+    <div style="padding: 8px; background: rgba(0,0,0,0.05); border-radius: 6px;"><strong>flutter_card_swiper</strong> — swipe cards</div>
+  </div>
+</div>

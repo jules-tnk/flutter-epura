@@ -1,0 +1,68 @@
+<h2>Epura — Core App Flow</h2>
+<p class="subtitle">How the main screens connect. Click the flow that feels right.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Minimal — 3 Screens</h3>
+      <div class="mockup" style="margin-top: 12px;">
+        <div class="mockup-body" style="font-family: monospace; font-size: 13px; line-height: 1.6;">
+          <pre style="margin:0; white-space:pre-wrap;">
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   HOME      │     │   REVIEW    │     │  SETTINGS   │
+│             │     │             │     │             │
+│ ┌─────────┐ │     │  ┌───────┐  │     │ Reminder:   │
+│ │ 12 new  │ │────▶│  │ Photo │  │     │ ○ Daily     │
+│ │ files   │ │     │  │       │  │     │ ● Custom    │
+│ │ to      │ │     │  └───────┘  │     │   [18:00]   │
+│ │ review  │ │     │             │     │             │
+│ └─────────┘ │     │  ← Keep     │     │ Scan:       │
+│             │     │  → Delete   │     │ ☑ Photos    │
+│ [Start ▶]  │     │             │     │ ☑ Videos    │
+│             │     │  3/12 done  │     │ ☑ Downloads │
+│     ⚙️      │     │             │     │             │
+└─────────────┘     └─────────────┘     └─────────────┘
+          </pre>
+        </div>
+      </div>
+      <p>Home → Review → Done. Settings accessible from home. Dead simple.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Standard — 4 Screens + Stats</h3>
+      <div class="mockup" style="margin-top: 12px;">
+        <div class="mockup-body" style="font-family: monospace; font-size: 13px; line-height: 1.6;">
+          <pre style="margin:0; white-space:pre-wrap;">
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   HOME      │     │   REVIEW    │     │  SUMMARY    │
+│             │     │             │     │             │
+│ ┌─────────┐ │     │  ┌───────┐  │     │ ✓ Done!     │
+│ │ 12 new  │ │────▶│  │ Photo │  │────▶│             │
+│ │ files   │ │     │  │       │  │     │ Kept: 8     │
+│ └─────────┘ │     │  └───────┘  │     │ Deleted: 4  │
+│             │     │             │     │ Freed: 45MB │
+│ ┌─────────┐ │     │  ← 🗑️  ♥ → │     │             │
+│ │Stats 📊 │ │     │             │     │ [View Stats]│
+│ └─────────┘ │     │  3/12       │     │ [Go Home]   │
+│     ⚙️      │     │             │     │             │
+└─────────────┘     └─────────────┘     └─────────────┘
+                                              │
+┌─────────────┐     ┌─────────────┐           │
+│  SETTINGS   │     │   STATS     │◀──────────┘
+│             │     │             │
+│ Reminder    │     │ This week:  │
+│ File types  │     │ ██░░ 120MB  │
+│ Period      │     │ freed       │
+│             │     │             │
+└─────────────┘     └─────────────┘
+          </pre>
+        </div>
+      </div>
+      <p>Adds a summary after review + stats tracking. More rewarding but more to build.</p>
+    </div>
+  </div>
+</div>

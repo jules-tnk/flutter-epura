@@ -1,0 +1,71 @@
+<h2>Review Screen — Swipe Card Design</h2>
+<p class="subtitle">The core interaction. Which card style feels right for reviewing files?</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #1a1a2e; padding: 20px;">
+      <div style="font-family: monospace; font-size: 12px; color: #e0e0e0; line-height: 1.5;">
+        <pre style="margin:0; white-space:pre-wrap; color: #ccc;">
+┌──────────────────────────┐
+│  ← Review    3/12    ⋮  │  status bar
+├──────────────────────────┤
+│                          │
+│    ╔══════════════════╗  │
+│    ║                  ║  │
+│    ║    📷 Photo      ║  │  card with
+│    ║    preview       ║  │  full preview
+│    ║                  ║  │
+│    ║                  ║  │
+│    ╠══════════════════╣  │
+│    ║ IMG_2024.jpg     ║  │  file info
+│    ║ 3.2 MB · Today   ║  │  at bottom
+│    ╚══════════════════╝  │
+│                          │
+│   🗑️ Delete    Keep ♥   │  action buttons
+│                          │
+│   ← swipe left / right → │
+└──────────────────────────┘
+        </pre>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Full Card</h3>
+      <p>Large preview takes most of the screen. File info at bottom of card. Action buttons below as backup to swiping.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #1a1a2e; padding: 20px;">
+      <div style="font-family: monospace; font-size: 12px; color: #e0e0e0; line-height: 1.5;">
+        <pre style="margin:0; white-space:pre-wrap; color: #ccc;">
+┌──────────────────────────┐
+│  ← Review    3/12    ⋮  │  status bar
+├──────────────────────────┤
+│  IMG_2024.jpg            │
+│  3.2 MB · Today · Photos │  file info
+│  ─────────────────────── │  on top
+│                          │
+│    ╔══════════════════╗  │
+│    ║                  ║  │
+│    ║    📷 Photo      ║  │  card with
+│    ║    preview       ║  │  preview
+│    ║                  ║  │
+│    ║                  ║  │
+│    ╚══════════════════╝  │
+│                          │
+│  ┌──────┐    ┌──────┐   │
+│  │ 🗑️   │    │  ♥   │   │  circular
+│  │Delete │    │ Keep │   │  buttons
+│  └──────┘    └──────┘   │
+│                          │
+│   ← swipe left / right → │
+└──────────────────────────┘
+        </pre>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Info-First</h3>
+      <p>File name & details shown above the preview. Prominent circular action buttons. Good for downloads where filename matters.</p>
+    </div>
+  </div>
+</div>
