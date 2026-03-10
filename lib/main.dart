@@ -23,7 +23,12 @@ void main() async {
   await settingsProvider.init();
 
   if (settingsProvider.notificationsEnabled) {
-    await notificationService.scheduleDailyReminder(settingsProvider.reminderTime);
+    final granted = await notificationService.requestPermission();
+    if (granted) {
+      await notificationService.scheduleDailyReminder(settingsProvider.reminderTime);
+    } else {
+      await settingsProvider.setNotificationsEnabled(false);
+    }
   }
 
   runApp(

@@ -85,6 +85,12 @@ class SettingsProvider extends ChangeNotifier {
 
   Future<void> setNotificationsEnabled(bool value) async {
     if (_notificationsEnabled == value) return;
+
+    if (value) {
+      final granted = await _notificationService.requestPermission();
+      if (!granted) return;
+    }
+
     _notificationsEnabled = value;
     await _prefs.setBool(_keyNotificationsEnabled, value);
     notifyListeners();
