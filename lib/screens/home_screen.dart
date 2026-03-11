@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../app.dart';
 import '../l10n/app_localizations.dart';
@@ -12,6 +13,7 @@ import '../theme/app_theme.dart';
 import '../utils/format_utils.dart';
 import '../widgets/empty_state.dart';
 import '../services/thumbnail_cache.dart';
+import '../services/notification_service.dart';
 import '../widgets/lookback_picker.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -27,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scanFiles();
+      _requestNotifPermissionIfFirstRun();
     });
   }
 
@@ -35,6 +38,21 @@ class _HomeScreenState extends State<HomeScreen> {
     final settings = context.read<SettingsProvider>();
     await fileService.requestPermissions();
     await fileService.scanForNewFiles(settings);
+  }
+
+  Future<void> _requestNotifPermissionIfFirstRun() async {
+    final prefs = await SharedPreferences.getInstance();
+    const key = 'hasAskedNotifPermission';
+    if (prefs.getBool(key) == true) return;
+
+    await prefs.setBool(key, true);
+
+    if (!mounted) return;
+    final notifService = context.read<NotificationService>();
+    final settings = context.read<SettingsProvider>();
+    final granted = await notifService.requestPermission();
+    if (!mounted) return;
+    await settings.applyNotificationPermissionResult(granted);
   }
 
   @override
