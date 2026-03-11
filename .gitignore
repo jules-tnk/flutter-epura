@@ -20,6 +20,7 @@ migrate_working_dir/
 
 .vscode/
 .claude/
+docs/
 
 # Flutter/Dart/Pub related
 **/doc/api/
