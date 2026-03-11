@@ -199,16 +199,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     final thumbCache = context.read<ThumbnailCache>();
                     final navigator = Navigator.of(context);
 
-                    final cutoff = await LookbackPicker.show(
+                    final result = await LookbackPicker.show(
                       context,
                       lastReviewTimestamp: settings.lastReviewTimestamp,
                     );
-                    if (cutoff == null || !mounted) return;
+                    if (result == null || !mounted) return;
 
                     await fs.requestPermissions();
                     if (!mounted) return;
 
-                    await fs.scanForNewFiles(settings, since: cutoff);
+                    await fs.scanForNewFiles(settings, since: result.since);
                     if (!mounted) return;
 
                     final scannedItems = fs.items;
