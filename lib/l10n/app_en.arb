@@ -25,9 +25,10 @@
   "stats": "Stats",
 
   "leaveReview": "Leave review?",
-  "leaveReviewMessage": "Your progress in this session will be lost.",
+  "leaveReviewMessage": "You can save your progress or discard all changes.",
   "cancel": "Cancel",
-  "leave": "Leave",
+  "saveAndExit": "Save & Exit",
+  "discardAndExit": "Discard & Exit",
   "skipForLater": "Skip for later",
 
   "photo": "Photo",

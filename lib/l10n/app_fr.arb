@@ -20,9 +20,10 @@
   "stats": "Statistiques",
 
   "leaveReview": "Quitter l'examen ?",
-  "leaveReviewMessage": "Votre progression dans cette session sera perdue.",
+  "leaveReviewMessage": "Vous pouvez enregistrer votre progression ou abandonner toutes les modifications.",
   "cancel": "Annuler",
-  "leave": "Quitter",
+  "saveAndExit": "Enregistrer et quitter",
+  "discardAndExit": "Abandonner et quitter",
   "skipForLater": "Passer pour plus tard",
 
   "photo": "Photo",

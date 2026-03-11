@@ -55,13 +55,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leaveReviewMessage =>
-      'Your progress in this session will be lost.';
+      'You can save your progress or discard all changes.';
 
   @override
   String get cancel => 'Cancel';
 
   @override
-  String get leave => 'Leave';
+  String get saveAndExit => 'Save & Exit';
+
+  @override
+  String get discardAndExit => 'Discard & Exit';
 
   @override
   String get skipForLater => 'Skip for later';
