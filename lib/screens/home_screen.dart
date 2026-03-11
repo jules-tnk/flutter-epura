@@ -162,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       )
                     : (fileService.isLoading && summary == null)
                         ? const Center(child: CircularProgressIndicator())
-                        : totalCount == 0 && !fileService.isBackgroundScanning
+                        : totalCount == 0 && !fileService.isBackgroundScanning && !fileService.isLoading
                             ? const EmptyState()
                             : Card(
                                 child: Padding(
@@ -173,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      if (fileService.isBackgroundScanning)
+                                      if (fileService.isBackgroundScanning || fileService.isLoading)
                                         const Padding(
                                           padding: EdgeInsets.only(
                                               bottom: AppTheme.spaceSM),
