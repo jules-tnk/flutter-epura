@@ -12,7 +12,6 @@ import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/format_utils.dart';
 import '../widgets/empty_state.dart';
-import '../services/thumbnail_cache.dart';
 import '../services/notification_service.dart';
 import '../widgets/lookback_picker.dart';
 
@@ -24,6 +23,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  bool _isPreparingReview = false;
+
   @override
   void initState() {
     super.initState();
@@ -53,6 +54,94 @@ class _HomeScreenState extends State<HomeScreen> {
     final granted = await notifService.requestPermission();
     if (!mounted) return;
     await settings.applyNotificationPermissionResult(granted);
+  }
+
+  String _scanPhaseText(AppLocalizations l, ScanPhase phase) {
+    switch (phase) {
+      case ScanPhase.scanningMedia:
+        return l.scanningPhotosAndVideos;
+      case ScanPhase.scanningDownloads:
+        return l.scanningDownloads;
+      case ScanPhase.idle:
+        return l.startingReview;
+    }
+  }
+
+  Widget _buildScanProgressCard(BuildContext context, FileService fileService, AppLocalizations l) {
+    final hasTotal = fileService.totalEstimatedAssets > 0;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.spaceMD),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              l.preparingReview.toUpperCase(),
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: AppTheme.textTertiary,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spaceSM),
+            if (hasTotal) ...[
+              RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '${fileService.processedAssets}',
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    TextSpan(
+                      text: ' / ${fileService.totalEstimatedAssets}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                        color: AppTheme.textTertiary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                l.filesScanned,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.textTertiary,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spaceMD),
+              LinearProgressIndicator(
+                value: fileService.scanProgress,
+                backgroundColor: AppTheme.divider,
+                color: AppTheme.accent,
+                minHeight: 3,
+              ),
+            ] else ...[
+              const SizedBox(height: AppTheme.spaceMD),
+              const LinearProgressIndicator(),
+            ],
+            const SizedBox(height: AppTheme.spaceSM),
+            Text(
+              hasTotal
+                  ? _scanPhaseText(l, fileService.scanPhase)
+                  : l.scanning,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppTheme.textTertiary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -89,6 +178,8 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
     final totalCount = photoCount + videoCount + downloadCount;
+
+    final buttonsDisabled = _isPreparingReview;
 
     return Scaffold(
       body: SafeArea(
@@ -160,93 +251,112 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       )
-                    : (fileService.isLoading && summary == null)
-                        ? const Center(child: CircularProgressIndicator())
-                        : totalCount == 0 && !fileService.isBackgroundScanning && !fileService.isLoading
-                            ? const EmptyState()
-                            : Card(
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.all(AppTheme.spaceMD),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      if (fileService.isBackgroundScanning || fileService.isLoading)
-                                        const Padding(
-                                          padding: EdgeInsets.only(
-                                              bottom: AppTheme.spaceSM),
-                                          child: LinearProgressIndicator(),
-                                        ),
-                                      Text(
-                                        l.filesToReview(totalCount),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .headlineSmall,
+                    : _isPreparingReview
+                        ? _buildScanProgressCard(context, fileService, l)
+                        : (fileService.isLoading && summary == null)
+                            ? _buildScanProgressCard(context, fileService, l)
+                            : totalCount == 0 && !fileService.isBackgroundScanning && !fileService.isLoading
+                                ? const EmptyState()
+                                : Card(
+                                    child: Padding(
+                                      padding:
+                                          const EdgeInsets.all(AppTheme.spaceMD),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          if (fileService.isBackgroundScanning || fileService.isLoading)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  bottom: AppTheme.spaceSM),
+                                              child: LinearProgressIndicator(
+                                                value: fileService.totalEstimatedAssets > 0
+                                                    ? fileService.scanProgress
+                                                    : null,
+                                                backgroundColor: AppTheme.divider,
+                                                color: AppTheme.accent,
+                                                minHeight: 3,
+                                              ),
+                                            ),
+                                          Text(
+                                            l.filesToReview(totalCount),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .headlineSmall,
+                                          ),
+                                          const SizedBox(height: AppTheme.spaceSM),
+                                          Text(
+                                            formatBytes(totalSize),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall,
+                                          ),
+                                          const Divider(
+                                              height: AppTheme.spaceLG),
+                                          _SummaryRow(
+                                            icon: Icons.photo_outlined,
+                                            label: l.photos,
+                                            count: photoCount,
+                                          ),
+                                          _SummaryRow(
+                                            icon: Icons.videocam_outlined,
+                                            label: l.videos,
+                                            count: videoCount,
+                                          ),
+                                          _SummaryRow(
+                                            icon: Icons.download_outlined,
+                                            label: l.downloads,
+                                            count: downloadCount,
+                                          ),
+                                        ],
                                       ),
-                                      const SizedBox(height: AppTheme.spaceSM),
-                                      Text(
-                                        formatBytes(totalSize),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall,
-                                      ),
-                                      const Divider(
-                                          height: AppTheme.spaceLG),
-                                      _SummaryRow(
-                                        icon: Icons.photo_outlined,
-                                        label: l.photos,
-                                        count: photoCount,
-                                      ),
-                                      _SummaryRow(
-                                        icon: Icons.videocam_outlined,
-                                        label: l.videos,
-                                        count: videoCount,
-                                      ),
-                                      _SummaryRow(
-                                        icon: Icons.download_outlined,
-                                        label: l.downloads,
-                                        count: downloadCount,
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              ),
               ),
 
               // Action buttons — always visible
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () async {
-                    final settings = context.read<SettingsProvider>();
-                    final fs = context.read<FileService>();
-                    final reviewProvider = context.read<ReviewProvider>();
-                    final thumbCache = context.read<ThumbnailCache>();
-                    final navigator = Navigator.of(context);
+                  onPressed: buttonsDisabled
+                      ? null
+                      : () async {
+                          final settings = context.read<SettingsProvider>();
+                          final fs = context.read<FileService>();
+                          final reviewProvider = context.read<ReviewProvider>();
+                          final navigator = Navigator.of(context);
 
-                    final result = await LookbackPicker.show(
-                      context,
-                      lastReviewTimestamp: settings.lastReviewTimestamp,
-                    );
-                    if (result == null || !mounted) return;
+                          final result = await LookbackPicker.show(
+                            context,
+                            lastReviewTimestamp: settings.lastReviewTimestamp,
+                          );
+                          if (result == null || !mounted) return;
 
-                    await fs.requestPermissions();
-                    if (!mounted) return;
+                          setState(() => _isPreparingReview = true);
 
-                    await fs.scanForNewFiles(settings, since: result.since);
-                    if (!mounted) return;
+                          try {
+                            await fs.requestPermissions();
+                            if (!mounted) return;
 
-                    final scannedItems = fs.items;
-                    if (scannedItems.isEmpty) return;
+                            await fs.scanForNewFiles(settings, since: result.since);
+                            if (!mounted) return;
 
-                    await thumbCache.prefetch(scannedItems);
-                    if (!mounted) return;
+                            final scannedItems = fs.items;
+                            if (scannedItems.isEmpty) {
+                              setState(() => _isPreparingReview = false);
+                              return;
+                            }
 
-                    reviewProvider.startReview(scannedItems);
-                    navigator.pushNamed(EpuraApp.routeReview);
-                  },
+                            reviewProvider.startReview(scannedItems);
+                            setState(() => _isPreparingReview = false);
+                            navigator.pushNamed(EpuraApp.routeReview);
+                          } catch (_) {
+                            if (mounted) {
+                              setState(() => _isPreparingReview = false);
+                            }
+                          }
+                        },
                   child: Text(l.startReview),
                 ),
               ),
@@ -254,8 +364,10 @@ class _HomeScreenState extends State<HomeScreen> {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
-                  onPressed: () => Navigator.pushNamed(
-                      context, EpuraApp.routeStats),
+                  onPressed: buttonsDisabled
+                      ? null
+                      : () => Navigator.pushNamed(
+                          context, EpuraApp.routeStats),
                   child: Text(l.stats),
                 ),
               ),

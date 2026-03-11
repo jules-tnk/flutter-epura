@@ -7,6 +7,7 @@ import '../l10n/app_localizations.dart';
 import '../providers/review_provider.dart';
 import '../services/database_service.dart';
 import '../providers/settings_provider.dart';
+import '../services/thumbnail_cache.dart';
 import '../theme/app_theme.dart';
 import '../widgets/review_card.dart';
 
@@ -22,6 +23,19 @@ class ReviewScreen extends StatefulWidget {
 class _ReviewScreenState extends State<ReviewScreen> {
   final CardSwiperController _swiperController = CardSwiperController();
   bool _completing = false;
+  double _completionProgress = 0.0;
+  int _deletionsDone = 0;
+  int _deletionsTotal = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final thumbCache = context.read<ThumbnailCache>();
+      final review = context.read<ReviewProvider>();
+      thumbCache.prefetch(review.queue);
+    });
+  }
 
   @override
   void dispose() {
@@ -83,9 +97,17 @@ class _ReviewScreenState extends State<ReviewScreen> {
     final review = context.read<ReviewProvider>();
     if (review.isComplete) {
       _completing = true;
+      _deletionsTotal = review.pendingDeletionCount;
       final db = context.read<DatabaseService>();
       final settings = context.read<SettingsProvider>();
-      review.completeSession(db, settings).then((_) {
+      review.completeSession(db, settings, onProgress: (done, total) {
+        if (mounted) {
+          setState(() {
+            _deletionsDone = done;
+            _completionProgress = total > 0 ? done / total : 1.0;
+          });
+        }
+      }).then((_) {
         if (mounted) {
           Navigator.pushReplacementNamed(context, EpuraApp.routeSummary);
         }
@@ -102,6 +124,38 @@ class _ReviewScreenState extends State<ReviewScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _checkCompletion();
       });
+
+      if (_deletionsTotal > 0) {
+        return Scaffold(
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXL),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    l.cleaningUp,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: AppTheme.spaceMD),
+                  LinearProgressIndicator(
+                    value: _completionProgress,
+                    backgroundColor: AppTheme.divider,
+                    color: AppTheme.accent,
+                    minHeight: 3,
+                  ),
+                  const SizedBox(height: AppTheme.spaceSM),
+                  Text(
+                    l.filesDeletedProgress(_deletionsDone, _deletionsTotal),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );

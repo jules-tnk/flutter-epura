@@ -93,5 +93,21 @@
   "helpLookback": "Période de recherche",
   "helpLookbackBody": "Quand vous commencez un examen, choisissez la période — de 1 jour à tout l'historique.",
   "helpStats": "Statistiques",
-  "helpStatsBody": "Voyez combien d'espace vous avez libéré et suivez votre série de nettoyage."
+  "helpStatsBody": "Voyez combien d'espace vous avez libéré et suivez votre série de nettoyage.",
+
+  "preparingReview": "Préparation de l'examen",
+  "filesScanned": "fichiers scannés",
+  "scanningPhotosAndVideos": "Scan des photos et vidéos...",
+  "scanningDownloads": "Scan des téléchargements...",
+  "cleaningUp": "Nettoyage en cours...",
+  "filesDeletedProgress": "{done} / {total} fichiers supprimés",
+  "@filesDeletedProgress": {
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "loadingStats": "Chargement des stats...",
+  "startingReview": "Démarrage de l'examen...",
+  "scanning": "Scan en cours..."
 }
