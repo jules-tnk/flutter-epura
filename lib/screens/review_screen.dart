@@ -22,7 +22,6 @@ class ReviewScreen extends StatefulWidget {
 class _ReviewScreenState extends State<ReviewScreen> {
   final CardSwiperController _swiperController = CardSwiperController();
   bool _completing = false;
-  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -57,18 +56,22 @@ class _ReviewScreenState extends State<ReviewScreen> {
   }
 
   Future<void> _handleLeaveChoice(LeaveReviewChoice choice) async {
-    if (choice == LeaveReviewChoice.cancel || _isSaving) return;
+    if (choice == LeaveReviewChoice.cancel || _completing) return;
 
     final review = context.read<ReviewProvider>();
     final navigator = Navigator.of(context);
 
     if (choice == LeaveReviewChoice.saveAndExit) {
-      setState(() => _isSaving = true);
-      final db = context.read<DatabaseService>();
-      final settings = context.read<SettingsProvider>();
-      await review.completeSession(db, settings);
-      if (!mounted) return;
-      navigator.pop();
+      _completing = true;
+      try {
+        final db = context.read<DatabaseService>();
+        final settings = context.read<SettingsProvider>();
+        await review.completeSession(db, settings);
+        if (!mounted) return;
+        navigator.pop();
+      } finally {
+        _completing = false;
+      }
     } else {
       review.discardSession();
       navigator.pop();

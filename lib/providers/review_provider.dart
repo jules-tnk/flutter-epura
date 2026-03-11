@@ -62,28 +62,19 @@ class ReviewProvider extends ChangeNotifier {
   }
 
   Future<void> executePendingDeletions() async {
-    for (final item in _pendingDeletions) {
+    final deletions = _pendingDeletions;
+    _pendingDeletions = [];
+    await Future.wait(deletions.map((item) async {
       try {
-        final file = File(item.path);
-        if (await file.exists()) {
-          await file.delete();
-        }
+        await File(item.path).delete();
       } catch (_) {
         // Silently skip files that can't be deleted
       }
-    }
-    _pendingDeletions = [];
+    }));
   }
 
   void discardSession() {
-    _pendingDeletions = [];
-    _queue = [];
-    _currentIndex = 0;
-    _keptCount = 0;
-    _deletedCount = 0;
-    _skippedCount = 0;
-    _bytesFreed = 0;
-    notifyListeners();
+    startReview([]);
   }
 
   void skipCurrent() {
