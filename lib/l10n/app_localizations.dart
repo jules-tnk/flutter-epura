@@ -439,6 +439,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'1 day'**
   String get oneDay;
+
+  /// No description provided for @cleanupReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Cleanup reminder'**
+  String get cleanupReminder;
+
+  /// No description provided for @daily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get daily;
+
+  /// No description provided for @weekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get weekly;
+
+  /// No description provided for @monday.
+  ///
+  /// In en, this message translates to:
+  /// **'Monday'**
+  String get monday;
+
+  /// No description provided for @tuesday.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuesday'**
+  String get tuesday;
+
+  /// No description provided for @wednesday.
+  ///
+  /// In en, this message translates to:
+  /// **'Wednesday'**
+  String get wednesday;
+
+  /// No description provided for @thursday.
+  ///
+  /// In en, this message translates to:
+  /// **'Thursday'**
+  String get thursday;
+
+  /// No description provided for @friday.
+  ///
+  /// In en, this message translates to:
+  /// **'Friday'**
+  String get friday;
+
+  /// No description provided for @saturday.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturday'**
+  String get saturday;
+
+  /// No description provided for @sunday.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunday'**
+  String get sunday;
+
+  /// No description provided for @forever.
+  ///
+  /// In en, this message translates to:
+  /// **'Forever'**
+  String get forever;
+
+  /// No description provided for @help.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get help;
+
+  /// No description provided for @helpWhatIsEpura.
+  ///
+  /// In en, this message translates to:
+  /// **'What is Epura?'**
+  String get helpWhatIsEpura;
+
+  /// No description provided for @helpWhatIsEpuraBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Epura helps you review and clean up photos, videos, and downloads on your phone.'**
+  String get helpWhatIsEpuraBody;
+
+  /// No description provided for @helpHowItWorks.
+  ///
+  /// In en, this message translates to:
+  /// **'How it works'**
+  String get helpHowItWorks;
+
+  /// No description provided for @helpHowItWorksBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe right to keep a file, left to delete it, or tap \"Skip\" to decide later.'**
+  String get helpHowItWorksBody;
+
+  /// No description provided for @helpNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get helpNotifications;
+
+  /// No description provided for @helpNotificationsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on reminders to get notified daily or weekly to clean up your storage.'**
+  String get helpNotificationsBody;
+
+  /// No description provided for @helpLookback.
+  ///
+  /// In en, this message translates to:
+  /// **'Lookback'**
+  String get helpLookback;
+
+  /// No description provided for @helpLookbackBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When you start a review, choose how far back to look — from 1 day to forever.'**
+  String get helpLookbackBody;
+
+  /// No description provided for @helpStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Stats'**
+  String get helpStats;
+
+  /// No description provided for @helpStatsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'See how much storage you\'ve freed and track your cleanup streak.'**
+  String get helpStatsBody;
 }
 
 class _AppLocalizationsDelegate

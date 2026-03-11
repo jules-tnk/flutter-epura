@@ -191,4 +191,75 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get oneDay => '1 day';
+
+  @override
+  String get cleanupReminder => 'Cleanup reminder';
+
+  @override
+  String get daily => 'Daily';
+
+  @override
+  String get weekly => 'Weekly';
+
+  @override
+  String get monday => 'Monday';
+
+  @override
+  String get tuesday => 'Tuesday';
+
+  @override
+  String get wednesday => 'Wednesday';
+
+  @override
+  String get thursday => 'Thursday';
+
+  @override
+  String get friday => 'Friday';
+
+  @override
+  String get saturday => 'Saturday';
+
+  @override
+  String get sunday => 'Sunday';
+
+  @override
+  String get forever => 'Forever';
+
+  @override
+  String get help => 'Help';
+
+  @override
+  String get helpWhatIsEpura => 'What is Epura?';
+
+  @override
+  String get helpWhatIsEpuraBody =>
+      'Epura helps you review and clean up photos, videos, and downloads on your phone.';
+
+  @override
+  String get helpHowItWorks => 'How it works';
+
+  @override
+  String get helpHowItWorksBody =>
+      'Swipe right to keep a file, left to delete it, or tap \"Skip\" to decide later.';
+
+  @override
+  String get helpNotifications => 'Notifications';
+
+  @override
+  String get helpNotificationsBody =>
+      'Turn on reminders to get notified daily or weekly to clean up your storage.';
+
+  @override
+  String get helpLookback => 'Lookback';
+
+  @override
+  String get helpLookbackBody =>
+      'When you start a review, choose how far back to look — from 1 day to forever.';
+
+  @override
+  String get helpStats => 'Stats';
+
+  @override
+  String get helpStatsBody =>
+      'See how much storage you\'ve freed and track your cleanup streak.';
 }

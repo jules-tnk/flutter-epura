@@ -191,4 +191,75 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get oneDay => '1 jour';
+
+  @override
+  String get cleanupReminder => 'Rappel de nettoyage';
+
+  @override
+  String get daily => 'Quotidien';
+
+  @override
+  String get weekly => 'Hebdomadaire';
+
+  @override
+  String get monday => 'Lundi';
+
+  @override
+  String get tuesday => 'Mardi';
+
+  @override
+  String get wednesday => 'Mercredi';
+
+  @override
+  String get thursday => 'Jeudi';
+
+  @override
+  String get friday => 'Vendredi';
+
+  @override
+  String get saturday => 'Samedi';
+
+  @override
+  String get sunday => 'Dimanche';
+
+  @override
+  String get forever => 'Tout';
+
+  @override
+  String get help => 'Aide';
+
+  @override
+  String get helpWhatIsEpura => 'Qu\'est-ce qu\'Epura ?';
+
+  @override
+  String get helpWhatIsEpuraBody =>
+      'Epura vous aide à examiner et nettoyer les photos, vidéos et téléchargements sur votre téléphone.';
+
+  @override
+  String get helpHowItWorks => 'Comment ça marche';
+
+  @override
+  String get helpHowItWorksBody =>
+      'Glissez à droite pour garder un fichier, à gauche pour le supprimer, ou appuyez sur « Passer » pour décider plus tard.';
+
+  @override
+  String get helpNotifications => 'Notifications';
+
+  @override
+  String get helpNotificationsBody =>
+      'Activez les rappels pour être notifié chaque jour ou chaque semaine de nettoyer votre stockage.';
+
+  @override
+  String get helpLookback => 'Période de recherche';
+
+  @override
+  String get helpLookbackBody =>
+      'Quand vous commencez un examen, choisissez la période — de 1 jour à tout l\'historique.';
+
+  @override
+  String get helpStats => 'Statistiques';
+
+  @override
+  String get helpStatsBody =>
+      'Voyez combien d\'espace vous avez libéré et suivez votre série de nettoyage.';
 }
