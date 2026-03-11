@@ -13,7 +13,10 @@ A minimal Android app that reminds you to periodically review recently added pho
 
 ## Screenshots
 
-<!-- Add screenshots here -->
+<p align="center">
+  <img src="img/image-1.png" width="30%" alt="Screenshot 1" />
+  <img src="img/image-2.png" width="30%" alt="Screenshot 2" />
+</p>
 
 ## Getting Started
 
