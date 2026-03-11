@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/notification_service.dart';
@@ -22,7 +23,7 @@ class SettingsProvider extends ChangeNotifier {
   bool _scanPhotos = true;
   bool _scanVideos = true;
   bool _scanDownloads = true;
-  bool _notificationsEnabled = true;
+  bool _notificationsEnabled = false;
   String? _localeCode;
   DateTime? _lastReviewTimestamp;
 
@@ -45,7 +46,7 @@ class SettingsProvider extends ChangeNotifier {
     _scanPhotos = _prefs.getBool(_keyScanPhotos) ?? true;
     _scanVideos = _prefs.getBool(_keyScanVideos) ?? true;
     _scanDownloads = _prefs.getBool(_keyScanDownloads) ?? true;
-    _notificationsEnabled = _prefs.getBool(_keyNotificationsEnabled) ?? true;
+    _notificationsEnabled = _prefs.getBool(_keyNotificationsEnabled) ?? false;
     _localeCode = _prefs.getString(_keyLocale);
 
     final timestampStr = _prefs.getString(_keyLastReviewTimestamp);
@@ -85,13 +86,31 @@ class SettingsProvider extends ChangeNotifier {
 
   Future<void> setNotificationsEnabled(bool value) async {
     if (_notificationsEnabled == value) return;
-    _notificationsEnabled = value;
-    await _prefs.setBool(_keyNotificationsEnabled, value);
-    notifyListeners();
     if (value) {
+      final granted = await _notificationService.requestPermission();
+      if (!granted) {
+        // Permission denied — open system settings so user can grant manually
+        await openAppSettings();
+        return; // don't flip the toggle
+      }
+      _notificationsEnabled = true;
+      await _prefs.setBool(_keyNotificationsEnabled, true);
+      notifyListeners();
       await _notificationService.scheduleDailyReminder(_reminderTime);
     } else {
+      _notificationsEnabled = false;
+      await _prefs.setBool(_keyNotificationsEnabled, false);
+      notifyListeners();
       await _notificationService.cancelReminder();
+    }
+  }
+
+  Future<void> applyNotificationPermissionResult(bool granted) async {
+    _notificationsEnabled = granted;
+    await _prefs.setBool(_keyNotificationsEnabled, granted);
+    notifyListeners();
+    if (granted) {
+      await _notificationService.scheduleDailyReminder(_reminderTime);
     }
   }
 
