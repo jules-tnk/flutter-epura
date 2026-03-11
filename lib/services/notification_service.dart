@@ -7,7 +7,7 @@ import 'package:timezone/timezone.dart' as tz;
 class NotificationService {
   static const int _reminderId = 0;
   static const String _channelId = 'epura_reminders';
-  static const String _channelName = 'Daily Reminders';
+  static const String _channelName = 'Cleanup Reminders';
   static const String _title = 'Time to clean up!';
   static const String _body = 'You have new files to review';
 
@@ -23,6 +23,17 @@ class NotificationService {
     const initSettings = InitializationSettings(android: androidSettings);
 
     await _plugin.initialize(settings: initSettings);
+
+    final androidPlugin =
+        _plugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+    await androidPlugin?.createNotificationChannel(
+      const AndroidNotificationChannel(
+        _channelId,
+        _channelName,
+        importance: Importance.high,
+      ),
+    );
   }
 
   Future<bool> requestPermission() async {
@@ -34,7 +45,11 @@ class NotificationService {
     return granted ?? false;
   }
 
-  Future<void> scheduleDailyReminder(TimeOfDay time) async {
+  Future<void> scheduleReminder(
+    TimeOfDay time,
+    String interval,
+    int dayOfWeek,
+  ) async {
     await cancelReminder();
 
     final now = tz.TZDateTime.now(tz.local);
@@ -47,8 +62,21 @@ class NotificationService {
       time.minute,
     );
 
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    final DateTimeComponents matchComponents;
+
+    if (interval == 'weekly') {
+      while (scheduledDate.weekday != dayOfWeek) {
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
+      }
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 7));
+      }
+      matchComponents = DateTimeComponents.dayOfWeekAndTime;
+    } else {
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
+      }
+      matchComponents = DateTimeComponents.time;
     }
 
     const androidDetails = AndroidNotificationDetails(
@@ -66,7 +94,7 @@ class NotificationService {
       scheduledDate: scheduledDate,
       notificationDetails: notificationDetails,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      matchDateTimeComponents: DateTimeComponents.time,
+      matchDateTimeComponents: matchComponents,
     );
   }
 
