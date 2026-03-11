@@ -118,5 +118,21 @@
   "helpLookback": "Lookback",
   "helpLookbackBody": "When you start a review, choose how far back to look — from 1 day to forever.",
   "helpStats": "Stats",
-  "helpStatsBody": "See how much storage you've freed and track your cleanup streak."
+  "helpStatsBody": "See how much storage you've freed and track your cleanup streak.",
+
+  "preparingReview": "Preparing review",
+  "filesScanned": "files scanned",
+  "scanningPhotosAndVideos": "Scanning photos & videos...",
+  "scanningDownloads": "Scanning downloads...",
+  "cleaningUp": "Cleaning up...",
+  "filesDeletedProgress": "{done} / {total} files deleted",
+  "@filesDeletedProgress": {
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "loadingStats": "Loading stats...",
+  "startingReview": "Starting review...",
+  "scanning": "Scanning..."
 }

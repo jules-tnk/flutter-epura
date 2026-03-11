@@ -23,6 +23,7 @@ class ReviewProvider extends ChangeNotifier {
   int get deletedCount => _deletedCount;
   int get skippedCount => _skippedCount;
   int get bytesFreed => _bytesFreed;
+  int get pendingDeletionCount => _pendingDeletions.length;
 
   ReviewItem? get currentItem =>
       isComplete ? null : _queue[_currentIndex];
@@ -61,15 +62,21 @@ class ReviewProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> executePendingDeletions() async {
-    final deletions = _pendingDeletions;
+  Future<void> executePendingDeletions({
+    void Function(int done, int total)? onProgress,
+  }) async {
+    final deletions = List.of(_pendingDeletions);
     _pendingDeletions = [];
+    final total = deletions.length;
+    int done = 0;
     await Future.wait(deletions.map((item) async {
       try {
         await File(item.path).delete();
       } catch (_) {
         // Silently skip files that can't be deleted
       }
+      done++;
+      onProgress?.call(done, total);
     }));
   }
 
@@ -86,9 +93,10 @@ class ReviewProvider extends ChangeNotifier {
 
   Future<void> completeSession(
     DatabaseService db,
-    SettingsProvider settings,
-  ) async {
-    await executePendingDeletions();
+    SettingsProvider settings, {
+    void Function(int done, int total)? onProgress,
+  }) async {
+    await executePendingDeletions(onProgress: onProgress);
 
     final totalDecisions = _keptCount + _deletedCount + _skippedCount;
     if (totalDecisions == 0) return;

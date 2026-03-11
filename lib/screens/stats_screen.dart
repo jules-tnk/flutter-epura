@@ -80,7 +80,23 @@ class _StatsScreenState extends State<StatsScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l.stats)),
       body: stats.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(l.loadingStats),
+                  const SizedBox(height: AppTheme.spaceMD),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXL),
+                    child: LinearProgressIndicator(
+                      value: stats.loadProgress,
+                      backgroundColor: AppTheme.divider,
+                      color: AppTheme.accent,
+                    ),
+                  ),
+                ],
+              ),
+            )
           : ListView(
               padding: const EdgeInsets.all(AppTheme.spaceMD),
               children: [

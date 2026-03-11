@@ -265,4 +265,33 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get helpStatsBody =>
       'See how much storage you\'ve freed and track your cleanup streak.';
+
+  @override
+  String get preparingReview => 'Preparing review';
+
+  @override
+  String get filesScanned => 'files scanned';
+
+  @override
+  String get scanningPhotosAndVideos => 'Scanning photos & videos...';
+
+  @override
+  String get scanningDownloads => 'Scanning downloads...';
+
+  @override
+  String get cleaningUp => 'Cleaning up...';
+
+  @override
+  String filesDeletedProgress(int done, int total) {
+    return '$done / $total files deleted';
+  }
+
+  @override
+  String get loadingStats => 'Loading stats...';
+
+  @override
+  String get startingReview => 'Starting review...';
+
+  @override
+  String get scanning => 'Scanning...';
 }

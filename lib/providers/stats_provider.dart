@@ -5,6 +5,7 @@ import '../services/database_service.dart';
 
 class StatsProvider extends ChangeNotifier {
   bool _isLoading = false;
+  double _loadProgress = 0.0;
   List<ReviewSession> _sessions = [];
   int _totalBytesFreed = 0;
   int _totalFilesReviewed = 0;
@@ -13,6 +14,7 @@ class StatsProvider extends ChangeNotifier {
   int _weeklyBytesFreed = 0;
 
   bool get isLoading => _isLoading;
+  double get loadProgress => _loadProgress;
   List<ReviewSession> get sessions => List.unmodifiable(_sessions);
   int get totalBytesFreed => _totalBytesFreed;
   int get totalFilesReviewed => _totalFilesReviewed;
@@ -22,18 +24,25 @@ class StatsProvider extends ChangeNotifier {
 
   Future<void> loadStats(DatabaseService db) async {
     _isLoading = true;
+    _loadProgress = 0.0;
     notifyListeners();
 
     try {
-      final results = await Future.wait([
-        db.getSessions(),
-        db.getStats(),
-        db.getStreak(),
-      ]);
+      int completed = 0;
+      void step() {
+        completed++;
+        _loadProgress = completed / 3;
+        notifyListeners();
+      }
 
-      _sessions = results[0] as List<ReviewSession>;
-      final stats = results[1] as Map<String, dynamic>;
-      _streak = results[2] as int;
+      _sessions = await db.getSessions();
+      step();
+
+      final stats = await db.getStats();
+      step();
+
+      _streak = await db.getStreak();
+      step();
 
       _totalBytesFreed = (stats['totalBytesFreed'] as int?) ?? 0;
       _totalFilesReviewed = (stats['totalFilesReviewed'] as int?) ?? 0;

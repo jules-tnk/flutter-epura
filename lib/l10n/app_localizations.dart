@@ -577,6 +577,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'See how much storage you\'ve freed and track your cleanup streak.'**
   String get helpStatsBody;
+
+  /// No description provided for @preparingReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing review'**
+  String get preparingReview;
+
+  /// No description provided for @filesScanned.
+  ///
+  /// In en, this message translates to:
+  /// **'files scanned'**
+  String get filesScanned;
+
+  /// No description provided for @scanningPhotosAndVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning photos & videos...'**
+  String get scanningPhotosAndVideos;
+
+  /// No description provided for @scanningDownloads.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning downloads...'**
+  String get scanningDownloads;
+
+  /// No description provided for @cleaningUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Cleaning up...'**
+  String get cleaningUp;
+
+  /// No description provided for @filesDeletedProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / {total} files deleted'**
+  String filesDeletedProgress(int done, int total);
+
+  /// No description provided for @loadingStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading stats...'**
+  String get loadingStats;
+
+  /// No description provided for @startingReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting review...'**
+  String get startingReview;
+
+  /// No description provided for @scanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning...'**
+  String get scanning;
 }
 
 class _AppLocalizationsDelegate

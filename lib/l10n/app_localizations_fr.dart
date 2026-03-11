@@ -265,4 +265,33 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get helpStatsBody =>
       'Voyez combien d\'espace vous avez libéré et suivez votre série de nettoyage.';
+
+  @override
+  String get preparingReview => 'Préparation de l\'examen';
+
+  @override
+  String get filesScanned => 'fichiers scannés';
+
+  @override
+  String get scanningPhotosAndVideos => 'Scan des photos et vidéos...';
+
+  @override
+  String get scanningDownloads => 'Scan des téléchargements...';
+
+  @override
+  String get cleaningUp => 'Nettoyage en cours...';
+
+  @override
+  String filesDeletedProgress(int done, int total) {
+    return '$done / $total fichiers supprimés';
+  }
+
+  @override
+  String get loadingStats => 'Chargement des stats...';
+
+  @override
+  String get startingReview => 'Démarrage de l\'examen...';
+
+  @override
+  String get scanning => 'Scan en cours...';
 }

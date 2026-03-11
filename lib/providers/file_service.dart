@@ -10,6 +10,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/review_item.dart';
 import 'settings_provider.dart';
 
+enum ScanPhase { idle, scanningMedia, scanningDownloads }
+
 class ScanSummary {
   final int photoCount;
   final int videoCount;
@@ -40,11 +42,34 @@ class FileService extends ChangeNotifier {
   bool _isBackgroundScanning = false;
   late final SharedPreferences _prefs;
 
+  double _scanProgress = 0.0;
+  ScanPhase _scanPhase = ScanPhase.idle;
+  int _processedAssets = 0;
+  int _totalEstimatedAssets = 0;
+  final Stopwatch _throttle = Stopwatch();
+
   bool get isLoading => _isLoading;
   bool get permissionDenied => _permissionDenied;
   List<ReviewItem> get items => List.unmodifiable(_items);
   ScanSummary? get cachedSummary => _cachedSummary;
   bool get isBackgroundScanning => _isBackgroundScanning;
+  double get scanProgress => _scanProgress;
+  ScanPhase get scanPhase => _scanPhase;
+  int get processedAssets => _processedAssets;
+  int get totalEstimatedAssets => _totalEstimatedAssets;
+
+  void _updateProgress() {
+    _scanProgress = _totalEstimatedAssets > 0
+        ? _processedAssets / _totalEstimatedAssets
+        : 0.0;
+    if (_processedAssets >= _totalEstimatedAssets ||
+        !_throttle.isRunning ||
+        _throttle.elapsedMilliseconds >= 66) {
+      _throttle.reset();
+      _throttle.start();
+      notifyListeners();
+    }
+  }
 
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
@@ -88,6 +113,13 @@ class FileService extends ChangeNotifier {
     } else {
       _isLoading = true;
     }
+
+    _scanProgress = 0.0;
+    _scanPhase = ScanPhase.idle;
+    _processedAssets = 0;
+    _totalEstimatedAssets = 0;
+    _throttle.stop();
+    _throttle.reset();
     notifyListeners();
 
     final List<ReviewItem> found = [];
@@ -122,6 +154,11 @@ class FileService extends ChangeNotifier {
       }
       _isLoading = false;
       _isBackgroundScanning = false;
+      _scanProgress = 0.0;
+      _scanPhase = ScanPhase.idle;
+      _processedAssets = 0;
+      _totalEstimatedAssets = 0;
+      _throttle.stop();
       notifyListeners();
     }
   }
@@ -168,6 +205,15 @@ class FileService extends ChangeNotifier {
 
     final albums = await PhotoManager.getAssetPathList(type: requestType);
 
+    // Count total media assets for progress tracking
+    int mediaTotal = 0;
+    for (final album in albums) {
+      mediaTotal += await album.assetCountAsync;
+    }
+    _totalEstimatedAssets += mediaTotal;
+    _scanPhase = ScanPhase.scanningMedia;
+    _updateProgress();
+
     final List<ReviewItem> result = [];
 
     for (final album in albums) {
@@ -178,10 +224,18 @@ class FileService extends ChangeNotifier {
 
       for (final asset in assets) {
         final assetDate = asset.createDateTime;
-        if (since != null && !assetDate.isAfter(since)) continue;
+        if (since != null && !assetDate.isAfter(since)) {
+          _processedAssets++;
+          _updateProgress();
+          continue;
+        }
 
         final file = await asset.file;
-        if (file == null) continue;
+        if (file == null) {
+          _processedAssets++;
+          _updateProgress();
+          continue;
+        }
 
         final fileSize = await file.length();
 
@@ -196,6 +250,9 @@ class FileService extends ChangeNotifier {
           type: itemType,
           date: assetDate,
         ));
+
+        _processedAssets++;
+        _updateProgress();
       }
     }
 
@@ -220,13 +277,27 @@ class FileService extends ChangeNotifier {
     final List<ReviewItem> result = [];
 
     final entities = downloadsDir.listSync(recursive: false);
+
+    // Add download count for progress tracking
+    _totalEstimatedAssets += entities.length;
+    _scanPhase = ScanPhase.scanningDownloads;
+    _updateProgress();
+
     for (final entity in entities) {
-      if (entity is! File) continue;
+      if (entity is! File) {
+        _processedAssets++;
+        _updateProgress();
+        continue;
+      }
 
       final stat = entity.statSync();
       final modified = stat.modified;
 
-      if (since != null && !modified.isAfter(since)) continue;
+      if (since != null && !modified.isAfter(since)) {
+        _processedAssets++;
+        _updateProgress();
+        continue;
+      }
 
       final name = p.basename(entity.path);
 
@@ -238,6 +309,9 @@ class FileService extends ChangeNotifier {
         type: FileItemType.download,
         date: modified,
       ));
+
+      _processedAssets++;
+      _updateProgress();
     }
 
     return result;
