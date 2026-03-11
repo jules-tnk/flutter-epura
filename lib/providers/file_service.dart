@@ -5,18 +5,63 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/review_item.dart';
 import 'settings_provider.dart';
 
+class ScanSummary {
+  final int photoCount;
+  final int videoCount;
+  final int downloadCount;
+  final int totalSize;
+
+  const ScanSummary({
+    required this.photoCount,
+    required this.videoCount,
+    required this.downloadCount,
+    required this.totalSize,
+  });
+
+  bool get isEmpty => photoCount == 0 && videoCount == 0 && downloadCount == 0;
+  int get totalCount => photoCount + videoCount + downloadCount;
+}
+
 class FileService extends ChangeNotifier {
+  static const String _keyCachedPhotoCount = 'cachedPhotoCount';
+  static const String _keyCachedVideoCount = 'cachedVideoCount';
+  static const String _keyCachedDownloadCount = 'cachedDownloadCount';
+  static const String _keyCachedTotalSize = 'cachedTotalSize';
+
   bool _isLoading = false;
   bool _permissionDenied = false;
   List<ReviewItem> _items = [];
+  ScanSummary? _cachedSummary;
+  bool _isBackgroundScanning = false;
+  late final SharedPreferences _prefs;
 
   bool get isLoading => _isLoading;
   bool get permissionDenied => _permissionDenied;
   List<ReviewItem> get items => List.unmodifiable(_items);
+  ScanSummary? get cachedSummary => _cachedSummary;
+  bool get isBackgroundScanning => _isBackgroundScanning;
+
+  Future<void> init() async {
+    _prefs = await SharedPreferences.getInstance();
+    final photo = _prefs.getInt(_keyCachedPhotoCount);
+    final video = _prefs.getInt(_keyCachedVideoCount);
+    final download = _prefs.getInt(_keyCachedDownloadCount);
+    final size = _prefs.getInt(_keyCachedTotalSize);
+
+    if (photo != null && video != null && download != null && size != null) {
+      _cachedSummary = ScanSummary(
+        photoCount: photo,
+        videoCount: video,
+        downloadCount: download,
+        totalSize: size,
+      );
+    }
+  }
 
   Future<bool> requestPermissions() async {
     final results = await [
@@ -37,8 +82,12 @@ class FileService extends ChangeNotifier {
     return status.isGranted;
   }
 
-  Future<void> scanForNewFiles(SettingsProvider settings, {DateTime? since}) async {
-    _isLoading = true;
+  Future<void> scanForNewFiles(SettingsProvider settings, {DateTime? since, bool updateCache = false}) async {
+    if (_cachedSummary != null && _items.isEmpty) {
+      _isBackgroundScanning = true;
+    } else {
+      _isLoading = true;
+    }
     notifyListeners();
 
     final List<ReviewItem> found = [];
@@ -64,9 +113,41 @@ class FileService extends ChangeNotifier {
     } catch (_) {
       _items = found;
     } finally {
+      if (updateCache) {
+        _cachedSummary = _computeSummary();
+        await _prefs.setInt(_keyCachedPhotoCount, _cachedSummary!.photoCount);
+        await _prefs.setInt(_keyCachedVideoCount, _cachedSummary!.videoCount);
+        await _prefs.setInt(_keyCachedDownloadCount, _cachedSummary!.downloadCount);
+        await _prefs.setInt(_keyCachedTotalSize, _cachedSummary!.totalSize);
+      }
       _isLoading = false;
+      _isBackgroundScanning = false;
       notifyListeners();
     }
+  }
+
+  ScanSummary _computeSummary() {
+    var photoCount = 0;
+    var videoCount = 0;
+    var downloadCount = 0;
+    var totalSize = 0;
+    for (final i in _items) {
+      totalSize += i.size;
+      switch (i.type) {
+        case FileItemType.photo:
+          photoCount++;
+        case FileItemType.video:
+          videoCount++;
+        case FileItemType.download:
+          downloadCount++;
+      }
+    }
+    return ScanSummary(
+      photoCount: photoCount,
+      videoCount: videoCount,
+      downloadCount: downloadCount,
+      totalSize: totalSize,
+    );
   }
 
   Future<List<ReviewItem>> _scanMediaAssets(
