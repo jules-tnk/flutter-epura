@@ -15,9 +15,10 @@ void main() async {
 
   final dbService = DatabaseService();
   final notificationService = NotificationService();
+  final fileService = FileService();
 
-  // Init DB and notifications in parallel
-  await Future.wait([dbService.init(), notificationService.init()]);
+  // Init DB, notifications, and file service cache in parallel
+  await Future.wait([dbService.init(), notificationService.init(), fileService.init()]);
 
   final settingsProvider = SettingsProvider(notificationService);
   await settingsProvider.init();
@@ -26,7 +27,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: settingsProvider),
-        ChangeNotifierProvider(create: (_) => FileService()),
+        ChangeNotifierProvider.value(value: fileService),
         ChangeNotifierProvider(create: (_) => ReviewProvider()),
         ChangeNotifierProvider(create: (_) => StatsProvider()),
         Provider.value(value: dbService),
