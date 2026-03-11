@@ -13,6 +13,8 @@ class SettingsProvider extends ChangeNotifier {
   static const String _keyLastReviewTimestamp = 'lastReviewTimestamp';
   static const String _keyNotificationsEnabled = 'notificationsEnabled';
   static const String _keyLocale = 'locale';
+  static const String _keyNotificationInterval = 'notificationInterval';
+  static const String _keyNotificationDayOfWeek = 'notificationDayOfWeek';
 
   final NotificationService _notificationService;
   late final SharedPreferences _prefs;
@@ -26,6 +28,8 @@ class SettingsProvider extends ChangeNotifier {
   bool _notificationsEnabled = false;
   String? _localeCode;
   DateTime? _lastReviewTimestamp;
+  String _notificationInterval = 'daily';
+  int _notificationDayOfWeek = DateTime.monday;
 
   TimeOfDay get reminderTime => _reminderTime;
   bool get scanPhotos => _scanPhotos;
@@ -35,6 +39,8 @@ class SettingsProvider extends ChangeNotifier {
   Locale? get locale => _localeCode != null ? Locale(_localeCode!) : null;
   String? get localeCode => _localeCode;
   DateTime? get lastReviewTimestamp => _lastReviewTimestamp;
+  String get notificationInterval => _notificationInterval;
+  int get notificationDayOfWeek => _notificationDayOfWeek;
 
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
@@ -48,10 +54,22 @@ class SettingsProvider extends ChangeNotifier {
     _scanDownloads = _prefs.getBool(_keyScanDownloads) ?? true;
     _notificationsEnabled = _prefs.getBool(_keyNotificationsEnabled) ?? false;
     _localeCode = _prefs.getString(_keyLocale);
+    _notificationInterval = _prefs.getString(_keyNotificationInterval) ?? 'daily';
+    _notificationDayOfWeek = _prefs.getInt(_keyNotificationDayOfWeek) ?? DateTime.monday;
 
     final timestampStr = _prefs.getString(_keyLastReviewTimestamp);
     _lastReviewTimestamp =
         timestampStr != null ? DateTime.tryParse(timestampStr) : null;
+  }
+
+  Future<void> _scheduleIfEnabled() async {
+    if (_notificationsEnabled) {
+      await _notificationService.scheduleReminder(
+        _reminderTime,
+        _notificationInterval,
+        _notificationDayOfWeek,
+      );
+    }
   }
 
   Future<void> setReminderTime(TimeOfDay time) async {
@@ -60,7 +78,7 @@ class SettingsProvider extends ChangeNotifier {
     await _prefs.setInt(_keyReminderHour, time.hour);
     await _prefs.setInt(_keyReminderMinute, time.minute);
     notifyListeners();
-    await _notificationService.scheduleDailyReminder(time);
+    await _scheduleIfEnabled();
   }
 
   Future<void> setScanPhotos(bool value) async {
@@ -96,7 +114,11 @@ class SettingsProvider extends ChangeNotifier {
       _notificationsEnabled = true;
       await _prefs.setBool(_keyNotificationsEnabled, true);
       notifyListeners();
-      await _notificationService.scheduleDailyReminder(_reminderTime);
+      await _notificationService.scheduleReminder(
+        _reminderTime,
+        _notificationInterval,
+        _notificationDayOfWeek,
+      );
     } else {
       _notificationsEnabled = false;
       await _prefs.setBool(_keyNotificationsEnabled, false);
@@ -110,8 +132,28 @@ class SettingsProvider extends ChangeNotifier {
     await _prefs.setBool(_keyNotificationsEnabled, granted);
     notifyListeners();
     if (granted) {
-      await _notificationService.scheduleDailyReminder(_reminderTime);
+      await _notificationService.scheduleReminder(
+        _reminderTime,
+        _notificationInterval,
+        _notificationDayOfWeek,
+      );
     }
+  }
+
+  Future<void> setNotificationInterval(String interval) async {
+    if (_notificationInterval == interval) return;
+    _notificationInterval = interval;
+    await _prefs.setString(_keyNotificationInterval, interval);
+    notifyListeners();
+    await _scheduleIfEnabled();
+  }
+
+  Future<void> setNotificationDayOfWeek(int day) async {
+    if (_notificationDayOfWeek == day) return;
+    _notificationDayOfWeek = day;
+    await _prefs.setInt(_keyNotificationDayOfWeek, day);
+    notifyListeners();
+    await _scheduleIfEnabled();
   }
 
   Future<void> setLocale(String? code) async {
