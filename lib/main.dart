@@ -22,10 +22,6 @@ void main() async {
   final settingsProvider = SettingsProvider(notificationService);
   await settingsProvider.init();
 
-  if (settingsProvider.notificationsEnabled) {
-    await notificationService.scheduleDailyReminder(settingsProvider.reminderTime);
-  }
-
   runApp(
     MultiProvider(
       providers: [
