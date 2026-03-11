@@ -55,13 +55,16 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get leaveReviewMessage =>
-      'Votre progression dans cette session sera perdue.';
+      'Vous pouvez enregistrer votre progression ou abandonner toutes les modifications.';
 
   @override
   String get cancel => 'Annuler';
 
   @override
-  String get leave => 'Quitter';
+  String get saveAndExit => 'Enregistrer et quitter';
+
+  @override
+  String get discardAndExit => 'Abandonner et quitter';
 
   @override
   String get skipForLater => 'Passer pour plus tard';

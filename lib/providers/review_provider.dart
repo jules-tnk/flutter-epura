@@ -15,6 +15,7 @@ class ReviewProvider extends ChangeNotifier {
   int _deletedCount = 0;
   int _skippedCount = 0;
   int _bytesFreed = 0;
+  List<ReviewItem> _pendingDeletions = [];
 
   List<ReviewItem> get queue => List.unmodifiable(_queue);
   int get currentIndex => _currentIndex;
@@ -38,6 +39,7 @@ class ReviewProvider extends ChangeNotifier {
     _deletedCount = 0;
     _skippedCount = 0;
     _bytesFreed = 0;
+    _pendingDeletions = [];
     notifyListeners();
   }
 
@@ -48,22 +50,39 @@ class ReviewProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> deleteCurrent() async {
+  void deleteCurrent() {
     if (isComplete) return;
     final item = _queue[_currentIndex];
 
-    try {
-      final file = File(item.path);
-      if (await file.exists()) {
-        await file.delete();
-        _bytesFreed += item.size;
-      }
-    } catch (_) {
-      // If deletion fails, still advance the queue
-    }
-
+    _pendingDeletions.add(item);
+    _bytesFreed += item.size;
     _deletedCount++;
     _currentIndex++;
+    notifyListeners();
+  }
+
+  Future<void> executePendingDeletions() async {
+    for (final item in _pendingDeletions) {
+      try {
+        final file = File(item.path);
+        if (await file.exists()) {
+          await file.delete();
+        }
+      } catch (_) {
+        // Silently skip files that can't be deleted
+      }
+    }
+    _pendingDeletions = [];
+  }
+
+  void discardSession() {
+    _pendingDeletions = [];
+    _queue = [];
+    _currentIndex = 0;
+    _keptCount = 0;
+    _deletedCount = 0;
+    _skippedCount = 0;
+    _bytesFreed = 0;
     notifyListeners();
   }
 
@@ -78,6 +97,11 @@ class ReviewProvider extends ChangeNotifier {
     DatabaseService db,
     SettingsProvider settings,
   ) async {
+    await executePendingDeletions();
+
+    final totalDecisions = _keptCount + _deletedCount + _skippedCount;
+    if (totalDecisions == 0) return;
+
     final now = DateTime.now();
     final session = ReviewSession(
       id: now.millisecondsSinceEpoch.toString(),

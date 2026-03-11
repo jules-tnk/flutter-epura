@@ -185,7 +185,7 @@ abstract class AppLocalizations {
   /// No description provided for @leaveReviewMessage.
   ///
   /// In en, this message translates to:
-  /// **'Your progress in this session will be lost.'**
+  /// **'You can save your progress or discard all changes.'**
   String get leaveReviewMessage;
 
   /// No description provided for @cancel.
@@ -194,11 +194,17 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get cancel;
 
-  /// No description provided for @leave.
+  /// No description provided for @saveAndExit.
   ///
   /// In en, this message translates to:
-  /// **'Leave'**
-  String get leave;
+  /// **'Save & Exit'**
+  String get saveAndExit;
+
+  /// No description provided for @discardAndExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard & Exit'**
+  String get discardAndExit;
 
   /// No description provided for @skipForLater.
   ///

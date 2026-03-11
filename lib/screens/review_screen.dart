@@ -10,6 +10,8 @@ import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/review_card.dart';
 
+enum LeaveReviewChoice { cancel, saveAndExit, discardAndExit }
+
 class ReviewScreen extends StatefulWidget {
   const ReviewScreen({super.key});
 
@@ -20,6 +22,7 @@ class ReviewScreen extends StatefulWidget {
 class _ReviewScreenState extends State<ReviewScreen> {
   final CardSwiperController _swiperController = CardSwiperController();
   bool _completing = false;
+  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -27,26 +30,49 @@ class _ReviewScreenState extends State<ReviewScreen> {
     super.dispose();
   }
 
-  Future<bool> _onWillPop() async {
+  Future<LeaveReviewChoice> _showLeaveDialog() async {
     final l = AppLocalizations.of(context)!;
-    final result = await showDialog<bool>(
+    final result = await showDialog<LeaveReviewChoice>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l.leaveReview),
         content: Text(l.leaveReviewMessage),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(context, LeaveReviewChoice.cancel),
             child: Text(l.cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l.leave),
+            onPressed: () => Navigator.pop(context, LeaveReviewChoice.discardAndExit),
+            child: Text(l.discardAndExit),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, LeaveReviewChoice.saveAndExit),
+            child: Text(l.saveAndExit),
           ),
         ],
       ),
     );
-    return result ?? false;
+    return result ?? LeaveReviewChoice.cancel;
+  }
+
+  Future<void> _handleLeaveChoice(LeaveReviewChoice choice) async {
+    if (choice == LeaveReviewChoice.cancel || _isSaving) return;
+
+    final review = context.read<ReviewProvider>();
+    final navigator = Navigator.of(context);
+
+    if (choice == LeaveReviewChoice.saveAndExit) {
+      setState(() => _isSaving = true);
+      final db = context.read<DatabaseService>();
+      final settings = context.read<SettingsProvider>();
+      await review.completeSession(db, settings);
+      if (!mounted) return;
+      navigator.pop();
+    } else {
+      review.discardSession();
+      navigator.pop();
+    }
   }
 
   void _checkCompletion() {
@@ -82,22 +108,16 @@ class _ReviewScreenState extends State<ReviewScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        final navigator = Navigator.of(context);
-        final shouldPop = await _onWillPop();
-        if (shouldPop && mounted) {
-          navigator.pop();
-        }
+        final choice = await _showLeaveDialog();
+        await _handleLeaveChoice(choice);
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () async {
-              final navigator = Navigator.of(context);
-              final shouldPop = await _onWillPop();
-              if (shouldPop && mounted) {
-                navigator.pop();
-              }
+              final choice = await _showLeaveDialog();
+              await _handleLeaveChoice(choice);
             },
           ),
           title: Text(review.progress),
