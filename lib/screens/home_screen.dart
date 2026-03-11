@@ -37,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final fileService = context.read<FileService>();
     final settings = context.read<SettingsProvider>();
     await fileService.requestPermissions();
-    await fileService.scanForNewFiles(settings);
+    await fileService.scanForNewFiles(settings, since: DateTime(1970), updateCache: true);
   }
 
   Future<void> _requestNotifPermissionIfFirstRun() async {
@@ -61,13 +61,34 @@ class _HomeScreenState extends State<HomeScreen> {
     final l = AppLocalizations.of(context)!;
     final items = fileService.items;
 
-    final photoCount =
-        items.where((i) => i.type == FileItemType.photo).length;
-    final videoCount =
-        items.where((i) => i.type == FileItemType.video).length;
-    final downloadCount =
-        items.where((i) => i.type == FileItemType.download).length;
-    final totalSize = items.fold<int>(0, (sum, i) => sum + i.size);
+    // Resolve counts from fresh items or cached summary
+    final hasFreshData = !fileService.isLoading && !fileService.isBackgroundScanning;
+    final summary = hasFreshData ? null : fileService.cachedSummary;
+
+    int photoCount, videoCount, downloadCount, totalSize;
+    if (summary != null) {
+      photoCount = summary.photoCount;
+      videoCount = summary.videoCount;
+      downloadCount = summary.downloadCount;
+      totalSize = summary.totalSize;
+    } else {
+      photoCount = 0;
+      videoCount = 0;
+      downloadCount = 0;
+      totalSize = 0;
+      for (final i in items) {
+        totalSize += i.size;
+        switch (i.type) {
+          case FileItemType.photo:
+            photoCount++;
+          case FileItemType.video:
+            videoCount++;
+          case FileItemType.download:
+            downloadCount++;
+        }
+      }
+    }
+    final totalCount = photoCount + videoCount + downloadCount;
 
     return Scaffold(
       body: SafeArea(
@@ -100,48 +121,48 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // Content
               Expanded(
-                child: fileService.isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : fileService.permissionDenied
-                        ? Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(AppTheme.spaceLG),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.folder_off_outlined,
-                                      size: 64, color: AppTheme.textTertiary),
-                                  const SizedBox(height: AppTheme.spaceMD),
-                                  Text(
-                                    l.storageAccessNeeded,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineSmall,
-                                  ),
-                                  const SizedBox(height: AppTheme.spaceSM),
-                                  Text(
-                                    l.storageAccessExplanation,
-                                    textAlign: TextAlign.center,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(
-                                            color: AppTheme.textSecondary),
-                                  ),
-                                  const SizedBox(height: AppTheme.spaceLG),
-                                  ElevatedButton(
-                                    onPressed: _scanFiles,
-                                    child: Text(l.grantAccess),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => openAppSettings(),
-                                    child: Text(l.openSettings),
-                                  ),
-                                ],
+                child: fileService.permissionDenied
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppTheme.spaceLG),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.folder_off_outlined,
+                                  size: 64, color: AppTheme.textTertiary),
+                              const SizedBox(height: AppTheme.spaceMD),
+                              Text(
+                                l.storageAccessNeeded,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall,
                               ),
-                            ),
-                          )
-                        : items.isEmpty
+                              const SizedBox(height: AppTheme.spaceSM),
+                              Text(
+                                l.storageAccessExplanation,
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                        color: AppTheme.textSecondary),
+                              ),
+                              const SizedBox(height: AppTheme.spaceLG),
+                              ElevatedButton(
+                                onPressed: _scanFiles,
+                                child: Text(l.grantAccess),
+                              ),
+                              TextButton(
+                                onPressed: () => openAppSettings(),
+                                child: Text(l.openSettings),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : (fileService.isLoading && summary == null)
+                        ? const Center(child: CircularProgressIndicator())
+                        : totalCount == 0 && !fileService.isBackgroundScanning
                             ? const EmptyState()
                             : Card(
                                 child: Padding(
@@ -152,8 +173,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
+                                      if (fileService.isBackgroundScanning)
+                                        const Padding(
+                                          padding: EdgeInsets.only(
+                                              bottom: AppTheme.spaceSM),
+                                          child: LinearProgressIndicator(),
+                                        ),
                                       Text(
-                                        l.filesToReview(items.length),
+                                        l.filesToReview(totalCount),
                                         style: Theme.of(context)
                                             .textTheme
                                             .headlineSmall,
