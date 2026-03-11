@@ -1,4 +1,4 @@
-name: Build & Release APK
+name: Build & Release
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,17 +25,35 @@ jobs:
       - name: Run analysis
         run: flutter analyze
 
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > upload-keystore.jks
+
+      - name: Build App Bundle
+        env:
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_STORE_PATH: upload-keystore.jks
+        run: flutter build appbundle --release
+
       - name: Build APK
-        run: flutter build apk --release
+        env:
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_STORE_PATH: upload-keystore.jks
+        run: |
+          flutter build apk --release
+          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/epura-${{ github.ref_name }}.apk
 
-      - name: Rename APK
-        run: mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/epura-${{ github.ref_name }}.apk
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload to Play Store (Internal Testing)
+        uses: r0adkll/upload-google-play@v1
         with:
-          name: epura-apk
-          path: build/app/outputs/flutter-apk/epura-${{ github.ref_name }}.apk
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_JSON_KEY }}
+          packageName: com.epura.cleaner
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
