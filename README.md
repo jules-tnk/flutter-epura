@@ -63,7 +63,43 @@ lib/
 
 ## CI/CD
 
-Push a tag like `v1.0.0` to trigger the GitHub Actions workflow which builds a release APK and creates a GitHub Release with the artifact attached.
+Pushing a `v*` tag triggers the GitHub Actions workflow, which builds a release APK and creates a GitHub Release with the artifact `epura-<tag>.apk`.
+
+### Releasing a new version
+
+1. **Bump the version** in `pubspec.yaml` (line `version:`):
+
+   ```yaml
+   # Format: <major>.<minor>.<patch>+<build-number>
+   version: 1.1.0+2
+   ```
+
+   - `build-name` (e.g. `1.1.0`) — displayed to users, follows semver
+   - `build-number` (e.g. `2`) — must be strictly incremented for each release uploaded to the Play Store
+
+2. **Commit the version bump:**
+
+   ```bash
+   git add pubspec.yaml
+   git commit -m "chore: bump version to 1.1.0+2"
+   ```
+
+3. **Tag and push:**
+
+   ```bash
+   git tag v1.1.0
+   git push origin master --tags
+   ```
+
+   This triggers the CI workflow. Once it completes, a GitHub Release named `v1.1.0` is created with `epura-v1.1.0.apk` attached.
+
+### What the workflow does
+
+1. Checks out the code
+2. Runs `flutter analyze`
+3. Builds a release APK (`flutter build apk --release`)
+4. Renames the APK to `epura-<tag>.apk`
+5. Creates a GitHub Release with auto-generated release notes
 
 ## Permissions
 
