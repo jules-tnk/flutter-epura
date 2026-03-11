@@ -3,16 +3,26 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 
+class LookbackResult {
+  static final DateTime _kForever = DateTime(1970);
+
+  final DateTime since;
+  LookbackResult({required this.since});
+  LookbackResult.forever() : since = _kForever;
+
+  bool get isForever => since.year == 1970;
+}
+
 class LookbackPicker extends StatefulWidget {
   final DateTime? lastReviewTimestamp;
 
   const LookbackPicker({super.key, this.lastReviewTimestamp});
 
-  static Future<DateTime?> show(
+  static Future<LookbackResult?> show(
     BuildContext context, {
     DateTime? lastReviewTimestamp,
   }) {
-    return showModalBottomSheet<DateTime>(
+    return showModalBottomSheet<LookbackResult>(
       context: context,
       builder: (_) => LookbackPicker(
         lastReviewTimestamp: lastReviewTimestamp,
@@ -27,6 +37,7 @@ class LookbackPicker extends StatefulWidget {
 class _LookbackPickerState extends State<LookbackPicker> {
   int? _selectedDays;
   bool _sinceLastReview = false;
+  bool _forever = false;
 
   @override
   void initState() {
@@ -39,6 +50,9 @@ class _LookbackPickerState extends State<LookbackPicker> {
   }
 
   DateTime _computeCutoff() {
+    if (_forever) {
+      return DateTime(1970);
+    }
     if (_sinceLastReview && widget.lastReviewTimestamp != null) {
       return widget.lastReviewTimestamp!;
     }
@@ -69,6 +83,7 @@ class _LookbackPickerState extends State<LookbackPicker> {
               selected: _sinceLastReview,
               onTap: () => setState(() {
                 _sinceLastReview = true;
+                _forever = false;
                 _selectedDays = null;
               }),
             ),
@@ -82,19 +97,32 @@ class _LookbackPickerState extends State<LookbackPicker> {
               for (final days in [1, 3, 7, 14, 30])
                 _PickerChip(
                   label: days == 1 ? l.oneDay : l.nDays(days),
-                  selected: !_sinceLastReview && _selectedDays == days,
+                  selected: !_sinceLastReview && !_forever && _selectedDays == days,
                   onTap: () => setState(() {
                     _sinceLastReview = false;
+                    _forever = false;
                     _selectedDays = days;
                   }),
                 ),
+              _PickerChip(
+                label: l.forever,
+                selected: _forever,
+                onTap: () => setState(() {
+                  _sinceLastReview = false;
+                  _selectedDays = null;
+                  _forever = true;
+                }),
+              ),
             ],
           ),
 
           const SizedBox(height: AppTheme.spaceLG),
 
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, _computeCutoff()),
+            onPressed: () => Navigator.pop(
+              context,
+              LookbackResult(since: _computeCutoff()),
+            ),
             child: Text(l.startReview),
           ),
           const SizedBox(height: AppTheme.spaceSM),
