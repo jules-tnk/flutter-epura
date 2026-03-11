@@ -21,10 +21,61 @@ class SettingsScreen extends StatelessWidget {
           SwitchListTile(
             secondary: const Icon(Icons.notifications_outlined),
             title: Text(l.notifications),
-            subtitle: Text(l.dailyCleanupReminder),
+            subtitle: Text(l.cleanupReminder),
             value: settings.notificationsEnabled,
             onChanged: (value) => settings.setNotificationsEnabled(value),
           ),
+          if (settings.notificationsEnabled)
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spaceMD,
+                vertical: AppTheme.spaceSM,
+              ),
+              child: Row(
+                children: [
+                  ChoiceChip(
+                    label: Text(l.daily),
+                    selected: settings.notificationInterval == 'daily',
+                    onSelected: (_) => settings.setNotificationInterval('daily'),
+                  ),
+                  const SizedBox(width: AppTheme.spaceSM),
+                  ChoiceChip(
+                    label: Text(l.weekly),
+                    selected: settings.notificationInterval == 'weekly',
+                    onSelected: (_) => settings.setNotificationInterval('weekly'),
+                  ),
+                ],
+              ),
+            ),
+          if (settings.notificationsEnabled &&
+              settings.notificationInterval == 'weekly')
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spaceMD,
+                vertical: AppTheme.spaceSM,
+              ),
+              child: Wrap(
+                spacing: AppTheme.spaceSM,
+                runSpacing: AppTheme.spaceSM,
+                children: [
+                  for (final entry in {
+                    DateTime.monday: l.monday,
+                    DateTime.tuesday: l.tuesday,
+                    DateTime.wednesday: l.wednesday,
+                    DateTime.thursday: l.thursday,
+                    DateTime.friday: l.friday,
+                    DateTime.saturday: l.saturday,
+                    DateTime.sunday: l.sunday,
+                  }.entries)
+                    ChoiceChip(
+                      label: Text(entry.value),
+                      selected: settings.notificationDayOfWeek == entry.key,
+                      onSelected: (_) =>
+                          settings.setNotificationDayOfWeek(entry.key),
+                    ),
+                ],
+              ),
+            ),
           if (settings.notificationsEnabled)
             ListTile(
               leading: const Icon(Icons.access_time_outlined),
@@ -129,8 +180,62 @@ class SettingsScreen extends StatelessWidget {
             title: const Text('Epura'),
             subtitle: Text(l.version('1.0.0')),
           ),
+          const Divider(),
+
+          ListTile(
+            leading: const Icon(Icons.help_outline),
+            title: Text(l.help),
+            onTap: () => _showHelp(context, l),
+          ),
         ],
       ),
     );
   }
+}
+
+void _showHelp(BuildContext context, AppLocalizations l) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (_) => DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      minChildSize: 0.3,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (context, scrollController) => SingleChildScrollView(
+        controller: scrollController,
+        padding: const EdgeInsets.all(AppTheme.spaceLG),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l.helpWhatIsEpura,
+                style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: AppTheme.spaceSM),
+            Text(l.helpWhatIsEpuraBody),
+            const SizedBox(height: AppTheme.spaceLG),
+            Text(l.helpHowItWorks,
+                style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: AppTheme.spaceSM),
+            Text(l.helpHowItWorksBody),
+            const SizedBox(height: AppTheme.spaceLG),
+            Text(l.helpNotifications,
+                style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: AppTheme.spaceSM),
+            Text(l.helpNotificationsBody),
+            const SizedBox(height: AppTheme.spaceLG),
+            Text(l.helpLookback,
+                style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: AppTheme.spaceSM),
+            Text(l.helpLookbackBody),
+            const SizedBox(height: AppTheme.spaceLG),
+            Text(l.helpStats,
+                style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: AppTheme.spaceSM),
+            Text(l.helpStatsBody),
+            const SizedBox(height: AppTheme.spaceLG),
+          ],
+        ),
+      ),
+    ),
+  );
 }
