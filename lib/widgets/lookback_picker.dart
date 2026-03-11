@@ -51,7 +51,7 @@ class _LookbackPickerState extends State<LookbackPicker> {
 
   DateTime _computeCutoff() {
     if (_forever) {
-      return DateTime(1970);
+      return LookbackResult._kForever;
     }
     if (_sinceLastReview && widget.lastReviewTimestamp != null) {
       return widget.lastReviewTimestamp!;
