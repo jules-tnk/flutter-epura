@@ -94,5 +94,28 @@
       "count": { "type": "int" }
     }
   },
-  "oneDay": "1 day"
+  "oneDay": "1 day",
+
+  "cleanupReminder": "Cleanup reminder",
+  "daily": "Daily",
+  "weekly": "Weekly",
+  "monday": "Monday",
+  "tuesday": "Tuesday",
+  "wednesday": "Wednesday",
+  "thursday": "Thursday",
+  "friday": "Friday",
+  "saturday": "Saturday",
+  "sunday": "Sunday",
+  "forever": "Forever",
+  "help": "Help",
+  "helpWhatIsEpura": "What is Epura?",
+  "helpWhatIsEpuraBody": "Epura helps you review and clean up photos, videos, and downloads on your phone.",
+  "helpHowItWorks": "How it works",
+  "helpHowItWorksBody": "Swipe right to keep a file, left to delete it, or tap \"Skip\" to decide later.",
+  "helpNotifications": "Notifications",
+  "helpNotificationsBody": "Turn on reminders to get notified daily or weekly to clean up your storage.",
+  "helpLookback": "Lookback",
+  "helpLookbackBody": "When you start a review, choose how far back to look — from 1 day to forever.",
+  "helpStats": "Stats",
+  "helpStatsBody": "See how much storage you've freed and track your cleanup streak."
 }
