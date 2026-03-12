@@ -23,7 +23,10 @@ class SettingsScreen extends StatelessWidget {
             title: Text(l.notifications),
             subtitle: Text(l.cleanupReminder),
             value: settings.notificationsEnabled,
-            onChanged: (value) => settings.setNotificationsEnabled(value),
+            onChanged: (value) async {
+              await settings.setNotificationsEnabled(value);
+              if (context.mounted) _showNextNotifToast(context, settings);
+            },
           ),
           if (settings.notificationsEnabled)
             Padding(
@@ -36,13 +39,19 @@ class SettingsScreen extends StatelessWidget {
                   ChoiceChip(
                     label: Text(l.daily),
                     selected: settings.notificationInterval == 'daily',
-                    onSelected: (_) => settings.setNotificationInterval('daily'),
+                    onSelected: (_) async {
+                      await settings.setNotificationInterval('daily');
+                      if (context.mounted) _showNextNotifToast(context, settings);
+                    },
                   ),
                   const SizedBox(width: AppTheme.spaceSM),
                   ChoiceChip(
                     label: Text(l.weekly),
                     selected: settings.notificationInterval == 'weekly',
-                    onSelected: (_) => settings.setNotificationInterval('weekly'),
+                    onSelected: (_) async {
+                      await settings.setNotificationInterval('weekly');
+                      if (context.mounted) _showNextNotifToast(context, settings);
+                    },
                   ),
                 ],
               ),
@@ -70,8 +79,10 @@ class SettingsScreen extends StatelessWidget {
                     ChoiceChip(
                       label: Text(entry.value),
                       selected: settings.notificationDayOfWeek == entry.key,
-                      onSelected: (_) =>
-                          settings.setNotificationDayOfWeek(entry.key),
+                      onSelected: (_) async {
+                        await settings.setNotificationDayOfWeek(entry.key);
+                        if (context.mounted) _showNextNotifToast(context, settings);
+                      },
                     ),
                 ],
               ),
@@ -88,6 +99,7 @@ class SettingsScreen extends StatelessWidget {
                 );
                 if (picked != null) {
                   await settings.setReminderTime(picked);
+                  if (context.mounted) _showNextNotifToast(context, settings);
                 }
               },
             ),
@@ -191,6 +203,36 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+void _showNextNotifToast(BuildContext context, SettingsProvider settings) {
+  final next = settings.nextNotificationTime;
+  if (next == null || !settings.notificationsEnabled) return;
+
+  final now = DateTime.now();
+  final diff = next.difference(now);
+
+  String timeStr;
+  if (diff.inDays > 0) {
+    final hours = diff.inHours % 24;
+    timeStr = '${diff.inDays}d ${hours}h';
+  } else if (diff.inHours > 0) {
+    final minutes = diff.inMinutes % 60;
+    timeStr = '${diff.inHours}h ${minutes}m';
+  } else if (diff.inMinutes > 0) {
+    timeStr = '${diff.inMinutes}m';
+  } else {
+    timeStr = '${diff.inSeconds}s';
+  }
+
+  ScaffoldMessenger.of(context)
+    ..clearSnackBars()
+    ..showSnackBar(
+      SnackBar(
+        content: Text('Next notification in $timeStr'),
+        duration: const Duration(seconds: 4),
+      ),
+    );
 }
 
 void _showHelp(BuildContext context, AppLocalizations l) {

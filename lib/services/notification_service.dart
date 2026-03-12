@@ -9,25 +9,28 @@ class NotificationService {
   static const String _channelId = 'epura_reminders';
   static const String _channelName = 'Cleanup Reminders';
   static const String _title = 'Time to clean up!';
-  static const String _body = 'You have new files to review';
+  static const String _body = 'Take a moment to review your files';
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
+
+  AndroidFlutterLocalNotificationsPlugin? _androidPlugin;
 
   Future<void> init() async {
     tz.initializeTimeZones();
     final tzInfo = await FlutterTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(tzInfo.identifier));
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
     const initSettings = InitializationSettings(android: androidSettings);
 
     await _plugin.initialize(settings: initSettings);
 
-    final androidPlugin =
-        _plugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
-    await androidPlugin?.createNotificationChannel(
+    _androidPlugin = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+
+    await _androidPlugin?.createNotificationChannel(
       const AndroidNotificationChannel(
         _channelId,
         _channelName,
@@ -36,16 +39,30 @@ class NotificationService {
     );
   }
 
-  Future<bool> requestPermission() async {
-    final androidPlugin =
-        _plugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
-    if (androidPlugin == null) return true; // non-Android, assume granted
-    final granted = await androidPlugin.requestNotificationsPermission();
+  Future<bool> requestExactAlarmPermission() async {
+    if (_androidPlugin == null) return true;
+
+    final canSchedule = await _androidPlugin!.canScheduleExactNotifications();
+    if (canSchedule ?? false) return true;
+
+    final granted = await _androidPlugin!.requestExactAlarmsPermission();
     return granted ?? false;
   }
 
-  Future<void> scheduleReminder(
+  Future<bool> requestPermission() async {
+    if (_androidPlugin == null) return true;
+
+    final notifGranted =
+        await _androidPlugin!.requestNotificationsPermission();
+    if (!(notifGranted ?? false)) return false;
+
+    await requestExactAlarmPermission();
+
+    return true;
+  }
+
+  /// Schedules a reminder and returns the exact [DateTime] it is scheduled for.
+  Future<DateTime> scheduleReminder(
     TimeOfDay time,
     String interval,
     int dayOfWeek,
@@ -87,15 +104,25 @@ class NotificationService {
     );
     const notificationDetails = NotificationDetails(android: androidDetails);
 
+    var scheduleMode = AndroidScheduleMode.exactAllowWhileIdle;
+    if (_androidPlugin != null) {
+      final canExact = await _androidPlugin!.canScheduleExactNotifications();
+      if (!(canExact ?? false)) {
+        scheduleMode = AndroidScheduleMode.inexactAllowWhileIdle;
+      }
+    }
+
     await _plugin.zonedSchedule(
       id: _reminderId,
       title: _title,
       body: _body,
       scheduledDate: scheduledDate,
       notificationDetails: notificationDetails,
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      androidScheduleMode: scheduleMode,
       matchDateTimeComponents: matchComponents,
     );
+
+    return scheduledDate;
   }
 
   Future<void> cancelReminder() async {

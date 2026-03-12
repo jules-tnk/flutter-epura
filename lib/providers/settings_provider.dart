@@ -30,6 +30,7 @@ class SettingsProvider extends ChangeNotifier {
   DateTime? _lastReviewTimestamp;
   String _notificationInterval = 'daily';
   int _notificationDayOfWeek = DateTime.monday;
+  DateTime? _nextNotificationTime;
 
   TimeOfDay get reminderTime => _reminderTime;
   bool get scanPhotos => _scanPhotos;
@@ -41,6 +42,7 @@ class SettingsProvider extends ChangeNotifier {
   DateTime? get lastReviewTimestamp => _lastReviewTimestamp;
   String get notificationInterval => _notificationInterval;
   int get notificationDayOfWeek => _notificationDayOfWeek;
+  DateTime? get nextNotificationTime => _nextNotificationTime;
 
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
@@ -62,9 +64,11 @@ class SettingsProvider extends ChangeNotifier {
         timestampStr != null ? DateTime.tryParse(timestampStr) : null;
   }
 
+  /// Schedules the reminder if notifications are enabled.
+  /// Does NOT call notifyListeners — callers are responsible for that.
   Future<void> _scheduleIfEnabled() async {
     if (_notificationsEnabled) {
-      await _notificationService.scheduleReminder(
+      _nextNotificationTime = await _notificationService.scheduleReminder(
         _reminderTime,
         _notificationInterval,
         _notificationDayOfWeek,
@@ -79,6 +83,7 @@ class SettingsProvider extends ChangeNotifier {
     await _prefs.setInt(_keyReminderMinute, time.minute);
     notifyListeners();
     await _scheduleIfEnabled();
+    notifyListeners();
   }
 
   Future<void> setScanPhotos(bool value) async {
@@ -107,20 +112,17 @@ class SettingsProvider extends ChangeNotifier {
     if (value) {
       final granted = await _notificationService.requestPermission();
       if (!granted) {
-        // Permission denied — open system settings so user can grant manually
         await openAppSettings();
-        return; // don't flip the toggle
+        return;
       }
       _notificationsEnabled = true;
       await _prefs.setBool(_keyNotificationsEnabled, true);
       notifyListeners();
-      await _notificationService.scheduleReminder(
-        _reminderTime,
-        _notificationInterval,
-        _notificationDayOfWeek,
-      );
+      await _scheduleIfEnabled();
+      notifyListeners();
     } else {
       _notificationsEnabled = false;
+      _nextNotificationTime = null;
       await _prefs.setBool(_keyNotificationsEnabled, false);
       notifyListeners();
       await _notificationService.cancelReminder();
@@ -132,11 +134,8 @@ class SettingsProvider extends ChangeNotifier {
     await _prefs.setBool(_keyNotificationsEnabled, granted);
     notifyListeners();
     if (granted) {
-      await _notificationService.scheduleReminder(
-        _reminderTime,
-        _notificationInterval,
-        _notificationDayOfWeek,
-      );
+      await _scheduleIfEnabled();
+      notifyListeners();
     }
   }
 
@@ -146,6 +145,7 @@ class SettingsProvider extends ChangeNotifier {
     await _prefs.setString(_keyNotificationInterval, interval);
     notifyListeners();
     await _scheduleIfEnabled();
+    notifyListeners();
   }
 
   Future<void> setNotificationDayOfWeek(int day) async {
@@ -154,6 +154,7 @@ class SettingsProvider extends ChangeNotifier {
     await _prefs.setInt(_keyNotificationDayOfWeek, day);
     notifyListeners();
     await _scheduleIfEnabled();
+    notifyListeners();
   }
 
   Future<void> setLocale(String? code) async {
