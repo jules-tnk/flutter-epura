@@ -140,8 +140,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   const SizedBox(height: AppTheme.spaceMD),
                   LinearProgressIndicator(
                     value: _completionProgress,
-                    backgroundColor: AppTheme.divider,
-                    color: AppTheme.accent,
+                    backgroundColor: Theme.of(context).dividerColor,
+                    color: Theme.of(context).colorScheme.primary,
                     minHeight: 3,
                   ),
                   const SizedBox(height: AppTheme.spaceSM),
@@ -187,8 +187,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 value: review.queue.isEmpty
                     ? 0
                     : review.currentIndex / review.queue.length,
-                backgroundColor: AppTheme.divider,
-                color: AppTheme.accent,
+                backgroundColor: Theme.of(context).dividerColor,
+                color: Theme.of(context).colorScheme.primary,
                 minHeight: 3,
               ),
               Expanded(

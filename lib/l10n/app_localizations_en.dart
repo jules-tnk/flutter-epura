@@ -294,4 +294,97 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanning => 'Scanning...';
+
+  @override
+  String get appearance => 'Appearance';
+
+  @override
+  String get light => 'Light';
+
+  @override
+  String get dark => 'Dark';
+
+  @override
+  String get legal => 'Legal';
+
+  @override
+  String get privacyPolicy => 'Privacy Policy';
+
+  @override
+  String get termsOfService => 'Terms of Service';
+
+  @override
+  String get viewOnline => 'View online';
+
+  @override
+  String get welcomeToEpura => 'Welcome to Epura';
+
+  @override
+  String get termsBottomSheetSummary =>
+      'Epura works entirely on your device. No data is collected, transmitted, or shared. By continuing, you agree to our Privacy Policy and Terms of Service.';
+
+  @override
+  String get accept => 'Accept';
+
+  @override
+  String get readPrivacyPolicy => 'Read Privacy Policy';
+
+  @override
+  String get readTermsOfService => 'Read Terms of Service';
+
+  @override
+  String get privacyPolicyLastUpdated => 'Last updated: March 11, 2026';
+
+  @override
+  String get privacyPolicyIntro =>
+      'Epura does not collect, transmit, or share any personal data.';
+
+  @override
+  String get privacyPolicyAccess =>
+      'The app requests access to your device\'s media files (photos, videos) and downloads folder solely to display them within the app for your review. Files are only deleted when you explicitly choose to delete them.';
+
+  @override
+  String get privacyPolicyNoData =>
+      'No data leaves your device. No analytics, no tracking, no accounts required.';
+
+  @override
+  String get privacyPolicyPermissions => 'Permissions';
+
+  @override
+  String get privacyPolicyPermMedia =>
+      'READ_MEDIA_IMAGES / READ_MEDIA_VIDEO: Used to display your photos and videos for review.';
+
+  @override
+  String get privacyPolicyPermStorage =>
+      'MANAGE_EXTERNAL_STORAGE: Used to access your Downloads folder for review.';
+
+  @override
+  String get privacyPolicyPermNotif =>
+      'POST_NOTIFICATIONS: Used to send periodic reminders.';
+
+  @override
+  String get privacyPolicyPermAlarm =>
+      'SCHEDULE_EXACT_ALARM / RECEIVE_BOOT_COMPLETED: Used to deliver reminders at chosen times.';
+
+  @override
+  String get tosLastUpdated => 'Last updated: March 20, 2026';
+
+  @override
+  String get tosIntro => 'By using Epura, you agree to the following terms.';
+
+  @override
+  String get tosLocalOnly =>
+      'Epura operates entirely on your device. No account is required and no data is transmitted.';
+
+  @override
+  String get tosDeletion =>
+      'When you choose to delete a file, it is permanently removed from your device. Epura is not responsible for any data loss resulting from your decisions.';
+
+  @override
+  String get tosNoWarranty =>
+      'Epura is provided \"as is\" without warranty of any kind.';
+
+  @override
+  String get tosChanges =>
+      'These terms may be updated from time to time. Continued use of the app constitutes acceptance of any changes.';
 }

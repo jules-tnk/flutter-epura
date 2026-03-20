@@ -23,11 +23,11 @@ class FilePreview extends StatelessWidget {
       case FileItemType.video:
         return _CachedVideoThumbnail(itemId: item.id);
       case FileItemType.download:
-        return _buildDownloadPreview();
+        return _buildDownloadPreview(context);
     }
   }
 
-  Widget _buildDownloadPreview() {
+  Widget _buildDownloadPreview(BuildContext context) {
     final ext = item.name.split('.').last.toLowerCase();
     final IconData icon;
     switch (ext) {
@@ -52,20 +52,20 @@ class FilePreview extends StatelessWidget {
       default:
         icon = Icons.insert_drive_file_outlined;
     }
-    return buildPlaceholder(icon);
+    return buildPlaceholder(context, icon);
   }
 
-  static Widget buildPlaceholder(IconData icon) {
+  static Widget buildPlaceholder(BuildContext context, IconData icon) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.background,
+        color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       ),
       child: Center(
         child: Icon(
           icon,
           size: 64,
-          color: AppTheme.textTertiary,
+          color: Theme.of(context).extension<AppColorsExtension>()!.textTertiary,
         ),
       ),
     );
@@ -86,7 +86,7 @@ class _CachedThumbnail extends StatelessWidget {
     final Uint8List? bytes = context.read<ThumbnailCache>().get(itemId);
 
     if (bytes == null) {
-      return FilePreview.buildPlaceholder(fallbackIcon);
+      return FilePreview.buildPlaceholder(context, fallbackIcon);
     }
 
     return ClipRRect(
@@ -111,7 +111,7 @@ class _CachedVideoThumbnail extends StatelessWidget {
     final Uint8List? bytes = context.read<ThumbnailCache>().get(itemId);
 
     if (bytes == null) {
-      return FilePreview.buildPlaceholder(Icons.videocam_outlined);
+      return FilePreview.buildPlaceholder(context, Icons.videocam_outlined);
     }
 
     return ClipRRect(

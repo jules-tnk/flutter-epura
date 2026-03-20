@@ -294,4 +294,98 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get scanning => 'Scan en cours...';
+
+  @override
+  String get appearance => 'Apparence';
+
+  @override
+  String get light => 'Clair';
+
+  @override
+  String get dark => 'Sombre';
+
+  @override
+  String get legal => 'Mentions légales';
+
+  @override
+  String get privacyPolicy => 'Politique de confidentialité';
+
+  @override
+  String get termsOfService => 'Conditions d\'utilisation';
+
+  @override
+  String get viewOnline => 'Voir en ligne';
+
+  @override
+  String get welcomeToEpura => 'Bienvenue sur Epura';
+
+  @override
+  String get termsBottomSheetSummary =>
+      'Epura fonctionne entièrement sur votre appareil. Aucune donnée n\'est collectée, transmise ou partagée. En continuant, vous acceptez notre politique de confidentialité et nos conditions d\'utilisation.';
+
+  @override
+  String get accept => 'Accepter';
+
+  @override
+  String get readPrivacyPolicy => 'Lire la politique de confidentialité';
+
+  @override
+  String get readTermsOfService => 'Lire les conditions d\'utilisation';
+
+  @override
+  String get privacyPolicyLastUpdated => 'Dernière mise à jour : 11 mars 2026';
+
+  @override
+  String get privacyPolicyIntro =>
+      'Epura ne collecte, ne transmet et ne partage aucune donnée personnelle.';
+
+  @override
+  String get privacyPolicyAccess =>
+      'L\'application demande l\'accès aux fichiers média de votre appareil (photos, vidéos) et au dossier Téléchargements uniquement pour les afficher dans l\'application. Les fichiers ne sont supprimés que lorsque vous le décidez explicitement.';
+
+  @override
+  String get privacyPolicyNoData =>
+      'Aucune donnée ne quitte votre appareil. Pas d\'analyse, pas de suivi, pas de compte requis.';
+
+  @override
+  String get privacyPolicyPermissions => 'Autorisations';
+
+  @override
+  String get privacyPolicyPermMedia =>
+      'READ_MEDIA_IMAGES / READ_MEDIA_VIDEO : utilisées pour afficher vos photos et vidéos.';
+
+  @override
+  String get privacyPolicyPermStorage =>
+      'MANAGE_EXTERNAL_STORAGE : utilisée pour accéder au dossier Téléchargements.';
+
+  @override
+  String get privacyPolicyPermNotif =>
+      'POST_NOTIFICATIONS : utilisée pour envoyer des rappels périodiques.';
+
+  @override
+  String get privacyPolicyPermAlarm =>
+      'SCHEDULE_EXACT_ALARM / RECEIVE_BOOT_COMPLETED : utilisées pour livrer les rappels aux heures choisies.';
+
+  @override
+  String get tosLastUpdated => 'Dernière mise à jour : 20 mars 2026';
+
+  @override
+  String get tosIntro =>
+      'En utilisant Epura, vous acceptez les conditions suivantes.';
+
+  @override
+  String get tosLocalOnly =>
+      'Epura fonctionne entièrement sur votre appareil. Aucun compte n\'est requis et aucune donnée n\'est transmise.';
+
+  @override
+  String get tosDeletion =>
+      'Lorsque vous choisissez de supprimer un fichier, il est définitivement supprimé de votre appareil. Epura n\'est pas responsable de toute perte de données résultant de vos décisions.';
+
+  @override
+  String get tosNoWarranty =>
+      'Epura est fourni « en l\'état » sans aucune garantie.';
+
+  @override
+  String get tosChanges =>
+      'Ces conditions peuvent être mises à jour. L\'utilisation continue de l\'application vaut acceptation des modifications.';
 }

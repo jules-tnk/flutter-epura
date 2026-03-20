@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../app.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
@@ -17,6 +18,47 @@ class SettingsScreen extends StatelessWidget {
       appBar: AppBar(title: Text(l.settings)),
       body: ListView(
         children: [
+          // Appearance
+          Padding(
+            padding: const EdgeInsets.only(
+              left: AppTheme.spaceMD,
+              top: AppTheme.spaceMD,
+              bottom: AppTheme.spaceSM,
+            ),
+            child: Text(
+              l.appearance,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTheme.spaceMD,
+              vertical: AppTheme.spaceSM,
+            ),
+            child: Row(
+              children: [
+                ChoiceChip(
+                  label: Text(l.light),
+                  selected: settings.themeMode == 'light',
+                  onSelected: (_) => settings.setThemeMode('light'),
+                ),
+                const SizedBox(width: AppTheme.spaceSM),
+                ChoiceChip(
+                  label: Text(l.dark),
+                  selected: settings.themeMode == 'dark',
+                  onSelected: (_) => settings.setThemeMode('dark'),
+                ),
+                const SizedBox(width: AppTheme.spaceSM),
+                ChoiceChip(
+                  label: Text(l.systemDefault),
+                  selected: settings.themeMode == 'system',
+                  onSelected: (_) => settings.setThemeMode('system'),
+                ),
+              ],
+            ),
+          ),
+          const Divider(),
+
           // Notifications
           SwitchListTile(
             secondary: const Icon(Icons.notifications_outlined),
@@ -191,6 +233,32 @@ class SettingsScreen extends StatelessWidget {
             leading: const Icon(Icons.info_outline),
             title: const Text('Epura'),
             subtitle: Text(l.version('1.0.3')),
+          ),
+          const Divider(),
+
+          // Legal
+          Padding(
+            padding: const EdgeInsets.only(
+              left: AppTheme.spaceMD,
+              top: AppTheme.spaceMD,
+              bottom: AppTheme.spaceSM,
+            ),
+            child: Text(
+              l.legal,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.privacy_tip_outlined),
+            title: Text(l.privacyPolicy),
+            onTap: () => Navigator.pushNamed(
+                context, EpuraApp.routePrivacyPolicy),
+          ),
+          ListTile(
+            leading: const Icon(Icons.description_outlined),
+            title: Text(l.termsOfService),
+            onTap: () => Navigator.pushNamed(
+                context, EpuraApp.routeTermsOfService),
           ),
           const Divider(),
 

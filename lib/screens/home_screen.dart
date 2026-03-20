@@ -28,10 +28,69 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _showTermsIfNeeded();
       _scanFiles();
       _requestNotifPermissionIfFirstRun();
     });
+  }
+
+  Future<void> _showTermsIfNeeded() async {
+    final settings = context.read<SettingsProvider>();
+    if (settings.hasAcceptedTerms) return;
+
+    await showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      builder: (ctx) {
+        final l = AppLocalizations.of(ctx)!;
+        final theme = Theme.of(ctx);
+        return PopScope(
+          canPop: false,
+          child: Padding(
+            padding: const EdgeInsets.all(AppTheme.spaceLG),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  l.welcomeToEpura,
+                  style: theme.textTheme.headlineSmall,
+                ),
+                const SizedBox(height: AppTheme.spaceMD),
+                Text(
+                  l.termsBottomSheetSummary,
+                  style: theme.textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppTheme.spaceLG),
+                TextButton(
+                  onPressed: () => Navigator.pushNamed(
+                      ctx, EpuraApp.routePrivacyPolicy),
+                  child: Text(l.readPrivacyPolicy),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pushNamed(
+                      ctx, EpuraApp.routeTermsOfService),
+                  child: Text(l.readTermsOfService),
+                ),
+                const SizedBox(height: AppTheme.spaceMD),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      settings.setHasAcceptedTerms(true);
+                      Navigator.pop(ctx);
+                    },
+                    child: Text(l.accept),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _scanFiles() async {
@@ -78,10 +137,10 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Text(
               l.preparingReview.toUpperCase(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
-                color: AppTheme.textTertiary,
+                color: Theme.of(context).extension<AppColorsExtension>()!.textTertiary,
                 letterSpacing: 0.5,
               ),
             ),
@@ -92,18 +151,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     TextSpan(
                       text: '${fileService.processedAssets}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     TextSpan(
                       text: ' / ${fileService.totalEstimatedAssets}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w400,
-                        color: AppTheme.textTertiary,
+                        color: Theme.of(context).extension<AppColorsExtension>()!.textTertiary,
                       ),
                     ),
                   ],
@@ -112,16 +171,16 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 2),
               Text(
                 l.filesScanned,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: AppTheme.textTertiary,
+                  color: Theme.of(context).extension<AppColorsExtension>()!.textTertiary,
                 ),
               ),
               const SizedBox(height: AppTheme.spaceMD),
               LinearProgressIndicator(
                 value: fileService.scanProgress,
-                backgroundColor: AppTheme.divider,
-                color: AppTheme.accent,
+                backgroundColor: Theme.of(context).dividerColor,
+                color: Theme.of(context).colorScheme.primary,
                 minHeight: 3,
               ),
             ] else ...[
@@ -133,9 +192,9 @@ class _HomeScreenState extends State<HomeScreen> {
               hasTotal
                   ? _scanPhaseText(l, fileService.scanPhase)
                   : l.scanning,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
-                color: AppTheme.textTertiary,
+                color: Theme.of(context).extension<AppColorsExtension>()!.textTertiary,
               ),
             ),
           ],
@@ -194,11 +253,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(width: 40),
                   Text(
                     l.appTitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w200,
                       letterSpacing: 4,
-                      color: AppTheme.textPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   IconButton(
@@ -219,8 +278,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.folder_off_outlined,
-                                  size: 64, color: AppTheme.textTertiary),
+                              Icon(Icons.folder_off_outlined,
+                                  size: 64, color: Theme.of(context).extension<AppColorsExtension>()!.textTertiary),
                               const SizedBox(height: AppTheme.spaceMD),
                               Text(
                                 l.storageAccessNeeded,
@@ -236,7 +295,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     .textTheme
                                     .bodyMedium
                                     ?.copyWith(
-                                        color: AppTheme.textSecondary),
+                                        color: Theme.of(context).extension<AppColorsExtension>()!.textSecondary),
                               ),
                               const SizedBox(height: AppTheme.spaceLG),
                               ElevatedButton(
@@ -274,8 +333,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 value: fileService.totalEstimatedAssets > 0
                                                     ? fileService.scanProgress
                                                     : null,
-                                                backgroundColor: AppTheme.divider,
-                                                color: AppTheme.accent,
+                                                backgroundColor: Theme.of(context).dividerColor,
+                                                color: Theme.of(context).colorScheme.primary,
                                                 minHeight: 3,
                                               ),
                                             ),
@@ -396,7 +455,7 @@ class _SummaryRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceXS),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: AppTheme.textSecondary),
+          Icon(icon, size: 20, color: Theme.of(context).extension<AppColorsExtension>()!.textSecondary),
           const SizedBox(width: AppTheme.spaceSM),
           Text(label, style: Theme.of(context).textTheme.bodyMedium),
           const Spacer(),

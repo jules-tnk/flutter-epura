@@ -16,10 +16,10 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.check_circle_outline,
               size: 80,
-              color: AppTheme.textTertiary,
+              color: Theme.of(context).extension<AppColorsExtension>()!.textTertiary,
             ),
             const SizedBox(height: AppTheme.spaceLG),
             Text(
@@ -31,7 +31,7 @@ class EmptyState extends StatelessWidget {
             Text(
               l.noFilesToReview,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.textSecondary,
+                    color: Theme.of(context).extension<AppColorsExtension>()!.textSecondary,
                   ),
               textAlign: TextAlign.center,
             ),

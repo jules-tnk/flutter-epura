@@ -29,7 +29,7 @@ class _StatsScreenState extends State<StatsScreen> {
     });
   }
 
-  List<BarChartGroupData> _buildWeeklyBars(StatsProvider stats) {
+  List<BarChartGroupData> _buildWeeklyBars(StatsProvider stats, Color barColor) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
@@ -54,7 +54,7 @@ class _StatsScreenState extends State<StatsScreen> {
         barRods: [
           BarChartRodData(
             toY: entry.value,
-            color: AppTheme.accent,
+            color: barColor,
             width: 16,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(4),
@@ -90,8 +90,8 @@ class _StatsScreenState extends State<StatsScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXL),
                     child: LinearProgressIndicator(
                       value: stats.loadProgress,
-                      backgroundColor: AppTheme.divider,
-                      color: AppTheme.accent,
+                      backgroundColor: Theme.of(context).dividerColor,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ],
@@ -129,7 +129,7 @@ class _StatsScreenState extends State<StatsScreen> {
                           height: 160,
                           child: BarChart(
                             BarChartData(
-                              barGroups: _buildWeeklyBars(stats),
+                              barGroups: _buildWeeklyBars(stats, Theme.of(context).colorScheme.primary),
                               borderData: FlBorderData(show: false),
                               gridData: const FlGridData(show: false),
                               titlesData: FlTitlesData(
@@ -150,9 +150,9 @@ class _StatsScreenState extends State<StatsScreen> {
                                         padding: const EdgeInsets.only(top: 4),
                                         child: Text(
                                           _dayLabel(value.toInt()),
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 11,
-                                            color: AppTheme.textTertiary,
+                                            color: Theme.of(context).extension<AppColorsExtension>()!.textTertiary,
                                           ),
                                         ),
                                       );
@@ -226,7 +226,7 @@ class _StatsScreenState extends State<StatsScreen> {
                           formatBytes(session.bytesFreed),
                           style:
                               Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    color: AppTheme.accent,
+                                    color: Theme.of(context).colorScheme.primary,
                                   ),
                         ),
                       ),

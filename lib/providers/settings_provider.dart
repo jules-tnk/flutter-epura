@@ -15,6 +15,8 @@ class SettingsProvider extends ChangeNotifier {
   static const String _keyLocale = 'locale';
   static const String _keyNotificationInterval = 'notificationInterval';
   static const String _keyNotificationDayOfWeek = 'notificationDayOfWeek';
+  static const String _keyThemeMode = 'themeMode';
+  static const String _keyHasAcceptedTerms = 'hasAcceptedTerms';
 
   final NotificationService _notificationService;
   late final SharedPreferences _prefs;
@@ -31,6 +33,8 @@ class SettingsProvider extends ChangeNotifier {
   String _notificationInterval = 'daily';
   int _notificationDayOfWeek = DateTime.monday;
   DateTime? _nextNotificationTime;
+  String _themeMode = 'system';
+  bool _hasAcceptedTerms = false;
 
   TimeOfDay get reminderTime => _reminderTime;
   bool get scanPhotos => _scanPhotos;
@@ -43,6 +47,19 @@ class SettingsProvider extends ChangeNotifier {
   String get notificationInterval => _notificationInterval;
   int get notificationDayOfWeek => _notificationDayOfWeek;
   DateTime? get nextNotificationTime => _nextNotificationTime;
+  String get themeMode => _themeMode;
+  bool get hasAcceptedTerms => _hasAcceptedTerms;
+
+  ThemeMode get resolvedThemeMode {
+    switch (_themeMode) {
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
+    }
+  }
 
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
@@ -58,6 +75,8 @@ class SettingsProvider extends ChangeNotifier {
     _localeCode = _prefs.getString(_keyLocale);
     _notificationInterval = _prefs.getString(_keyNotificationInterval) ?? 'daily';
     _notificationDayOfWeek = _prefs.getInt(_keyNotificationDayOfWeek) ?? DateTime.monday;
+    _themeMode = _prefs.getString(_keyThemeMode) ?? 'system';
+    _hasAcceptedTerms = _prefs.getBool(_keyHasAcceptedTerms) ?? false;
 
     final timestampStr = _prefs.getString(_keyLastReviewTimestamp);
     _lastReviewTimestamp =
@@ -172,6 +191,20 @@ class SettingsProvider extends ChangeNotifier {
     _lastReviewTimestamp = timestamp;
     await _prefs.setString(
         _keyLastReviewTimestamp, timestamp.toIso8601String());
+    notifyListeners();
+  }
+
+  Future<void> setThemeMode(String mode) async {
+    if (_themeMode == mode) return;
+    _themeMode = mode;
+    await _prefs.setString(_keyThemeMode, mode);
+    notifyListeners();
+  }
+
+  Future<void> setHasAcceptedTerms(bool value) async {
+    if (_hasAcceptedTerms == value) return;
+    _hasAcceptedTerms = value;
+    await _prefs.setBool(_keyHasAcceptedTerms, value);
     notifyListeners();
   }
 }

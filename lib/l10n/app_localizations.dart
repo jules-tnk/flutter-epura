@@ -631,6 +631,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Scanning...'**
   String get scanning;
+
+  /// No description provided for @appearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get appearance;
+
+  /// No description provided for @light.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get light;
+
+  /// No description provided for @dark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get dark;
+
+  /// No description provided for @legal.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal'**
+  String get legal;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicy;
+
+  /// No description provided for @termsOfService.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Service'**
+  String get termsOfService;
+
+  /// No description provided for @viewOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'View online'**
+  String get viewOnline;
+
+  /// No description provided for @welcomeToEpura.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Epura'**
+  String get welcomeToEpura;
+
+  /// No description provided for @termsBottomSheetSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Epura works entirely on your device. No data is collected, transmitted, or shared. By continuing, you agree to our Privacy Policy and Terms of Service.'**
+  String get termsBottomSheetSummary;
+
+  /// No description provided for @accept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get accept;
+
+  /// No description provided for @readPrivacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Read Privacy Policy'**
+  String get readPrivacyPolicy;
+
+  /// No description provided for @readTermsOfService.
+  ///
+  /// In en, this message translates to:
+  /// **'Read Terms of Service'**
+  String get readTermsOfService;
+
+  /// No description provided for @privacyPolicyLastUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Last updated: March 11, 2026'**
+  String get privacyPolicyLastUpdated;
+
+  /// No description provided for @privacyPolicyIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Epura does not collect, transmit, or share any personal data.'**
+  String get privacyPolicyIntro;
+
+  /// No description provided for @privacyPolicyAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The app requests access to your device\'s media files (photos, videos) and downloads folder solely to display them within the app for your review. Files are only deleted when you explicitly choose to delete them.'**
+  String get privacyPolicyAccess;
+
+  /// No description provided for @privacyPolicyNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data leaves your device. No analytics, no tracking, no accounts required.'**
+  String get privacyPolicyNoData;
+
+  /// No description provided for @privacyPolicyPermissions.
+  ///
+  /// In en, this message translates to:
+  /// **'Permissions'**
+  String get privacyPolicyPermissions;
+
+  /// No description provided for @privacyPolicyPermMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'READ_MEDIA_IMAGES / READ_MEDIA_VIDEO: Used to display your photos and videos for review.'**
+  String get privacyPolicyPermMedia;
+
+  /// No description provided for @privacyPolicyPermStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'MANAGE_EXTERNAL_STORAGE: Used to access your Downloads folder for review.'**
+  String get privacyPolicyPermStorage;
+
+  /// No description provided for @privacyPolicyPermNotif.
+  ///
+  /// In en, this message translates to:
+  /// **'POST_NOTIFICATIONS: Used to send periodic reminders.'**
+  String get privacyPolicyPermNotif;
+
+  /// No description provided for @privacyPolicyPermAlarm.
+  ///
+  /// In en, this message translates to:
+  /// **'SCHEDULE_EXACT_ALARM / RECEIVE_BOOT_COMPLETED: Used to deliver reminders at chosen times.'**
+  String get privacyPolicyPermAlarm;
+
+  /// No description provided for @tosLastUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Last updated: March 20, 2026'**
+  String get tosLastUpdated;
+
+  /// No description provided for @tosIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'By using Epura, you agree to the following terms.'**
+  String get tosIntro;
+
+  /// No description provided for @tosLocalOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Epura operates entirely on your device. No account is required and no data is transmitted.'**
+  String get tosLocalOnly;
+
+  /// No description provided for @tosDeletion.
+  ///
+  /// In en, this message translates to:
+  /// **'When you choose to delete a file, it is permanently removed from your device. Epura is not responsible for any data loss resulting from your decisions.'**
+  String get tosDeletion;
+
+  /// No description provided for @tosNoWarranty.
+  ///
+  /// In en, this message translates to:
+  /// **'Epura is provided \"as is\" without warranty of any kind.'**
+  String get tosNoWarranty;
+
+  /// No description provided for @tosChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'These terms may be updated from time to time. Continued use of the app constitutes acceptance of any changes.'**
+  String get tosChanges;
 }
 
 class _AppLocalizationsDelegate

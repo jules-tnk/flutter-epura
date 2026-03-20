@@ -47,3 +47,4 @@ app.*.map.json
 # Signing — never commit these
 upload-keystore.jks
 android/key.properties
+repomix-output.xml

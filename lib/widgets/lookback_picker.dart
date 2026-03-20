@@ -149,9 +149,9 @@ class _PickerChip extends StatelessWidget {
       label: Text(label),
       selected: selected,
       onSelected: (_) => onTap(),
-      selectedColor: AppTheme.accent.withAlpha(51),
+      selectedColor: Theme.of(context).colorScheme.primary.withAlpha(51),
       labelStyle: TextStyle(
-        color: selected ? AppTheme.accent : AppTheme.textPrimary,
+        color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
         fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
       ),
     );

@@ -24,10 +24,10 @@ class SummaryScreen extends StatelessWidget {
               const Spacer(),
 
               // Checkmark icon
-              const Icon(
+              Icon(
                 Icons.check_circle_outline,
                 size: 96,
-                color: AppTheme.success,
+                color: Theme.of(context).extension<AppColorsExtension>()!.success,
               ),
               const SizedBox(height: AppTheme.spaceLG),
 
@@ -47,28 +47,28 @@ class SummaryScreen extends StatelessWidget {
                         icon: Icons.check_circle_outline,
                         label: l.kept,
                         value: '${review.keptCount}',
-                        color: AppTheme.success,
+                        color: Theme.of(context).extension<AppColorsExtension>()!.success,
                       ),
                       const Divider(height: AppTheme.spaceMD),
                       _StatRow(
                         icon: Icons.delete_outline,
                         label: l.deleted,
                         value: '${review.deletedCount}',
-                        color: AppTheme.danger,
+                        color: Theme.of(context).extension<AppColorsExtension>()!.danger,
                       ),
                       const Divider(height: AppTheme.spaceMD),
                       _StatRow(
                         icon: Icons.skip_next_outlined,
                         label: l.skipped,
                         value: '${review.skippedCount}',
-                        color: AppTheme.textSecondary,
+                        color: Theme.of(context).extension<AppColorsExtension>()!.textSecondary,
                       ),
                       const Divider(height: AppTheme.spaceMD),
                       _StatRow(
                         icon: Icons.storage_outlined,
                         label: l.storageFreed,
                         value: formatBytes(review.bytesFreed),
-                        color: AppTheme.accent,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ],
                   ),
@@ -80,7 +80,7 @@ class SummaryScreen extends StatelessWidget {
               Text(
                 l.motivationalMessage,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppTheme.textSecondary,
+                      color: Theme.of(context).extension<AppColorsExtension>()!.textSecondary,
                     ),
                 textAlign: TextAlign.center,
               ),
