@@ -60,10 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  l.welcomeToEpura,
-                  style: theme.textTheme.headlineSmall,
-                ),
+                Text(l.welcomeToEpura, style: theme.textTheme.headlineSmall),
                 const SizedBox(height: AppTheme.spaceMD),
                 Text(
                   l.termsBottomSheetSummary,
@@ -109,9 +106,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<ReviewItem> _firstPreviewableMedia(List<ReviewItem> items) {
     return items
-        .where((item) =>
-            item.source == ReviewItemSource.mediaLibrary &&
-            item.type != FileItemType.download)
+        .where(
+          (item) =>
+              item.source == ReviewItemSource.mediaLibrary &&
+              item.type != FileItemType.download,
+        )
         .take(1)
         .toList();
   }
@@ -125,7 +124,9 @@ class _HomeScreenState extends State<HomeScreen> {
     await fileService.refreshAllFiles(settings);
     if (!mounted) return;
 
-    _showMessage(AppLocalizations.of(context)!.importedFilesAdded(importedCount));
+    _showMessage(
+      AppLocalizations.of(context)!.importedFilesAdded(importedCount),
+    );
   }
 
   Future<void> _clearImportedFiles() async {
@@ -286,6 +287,66 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildReviewSummaryCard(
+    BuildContext context,
+    AppLocalizations l, {
+    required FileService fileService,
+    required int totalCount,
+    required int totalSize,
+    required int photoCount,
+    required int videoCount,
+    required int downloadCount,
+  }) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.spaceMD),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (fileService.isBackgroundScanning || fileService.isLoading)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppTheme.spaceSM),
+                child: LinearProgressIndicator(
+                  value: fileService.totalEstimatedAssets > 0
+                      ? fileService.scanProgress
+                      : null,
+                  backgroundColor: Theme.of(context).dividerColor,
+                  color: Theme.of(context).colorScheme.primary,
+                  minHeight: 3,
+                ),
+              ),
+            Text(
+              l.filesToReview(totalCount),
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: AppTheme.spaceSM),
+            Text(
+              formatBytes(totalSize),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const Divider(height: AppTheme.spaceLG),
+            _SummaryRow(
+              icon: Icons.photo_outlined,
+              label: l.photos,
+              count: photoCount,
+            ),
+            _SummaryRow(
+              icon: Icons.videocam_outlined,
+              label: l.videos,
+              count: videoCount,
+            ),
+            _SummaryRow(
+              icon: Icons.download_outlined,
+              label: l.downloads,
+              count: downloadCount,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final fileService = context.watch<FileService>();
@@ -324,6 +385,65 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     final totalCount = photoCount + videoCount + downloadCount;
     final buttonsDisabled = _isPreparingReview;
+    final showScanProgress =
+        _isPreparingReview || (fileService.isLoading && summary == null);
+    final showEmptyState =
+        totalCount == 0 &&
+        !fileService.isBackgroundScanning &&
+        !fileService.isLoading;
+
+    Widget topContent;
+    if (fileService.permissionDenied && totalCount == 0) {
+      topContent = Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.spaceLG),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.folder_off_outlined,
+                size: 64,
+                color: context.appColors.textTertiary,
+              ),
+              const SizedBox(height: AppTheme.spaceMD),
+              Text(
+                l.storageAccessNeeded,
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: AppTheme.spaceSM),
+              Text(
+                l.storageAccessExplanation,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: context.appColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spaceLG),
+              ElevatedButton(onPressed: _scanFiles, child: Text(l.grantAccess)),
+              TextButton(
+                onPressed: openAppSettings,
+                child: Text(l.openSettings),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else if (showScanProgress) {
+      topContent = _buildScanProgressCard(context, fileService, l);
+    } else if (showEmptyState) {
+      topContent = const EmptyState();
+    } else {
+      topContent = _buildReviewSummaryCard(
+        context,
+        l,
+        fileService: fileService,
+        totalCount: totalCount,
+        totalSize: totalSize,
+        photoCount: photoCount,
+        videoCount: videoCount,
+        downloadCount: downloadCount,
+      );
+    }
 
     return Scaffold(
       body: SafeArea(
@@ -352,125 +472,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               const SizedBox(height: AppTheme.spaceXL),
-              Expanded(
-                child: fileService.permissionDenied && totalCount == 0
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(AppTheme.spaceLG),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.folder_off_outlined,
-                                size: 64,
-                                color: context.appColors.textTertiary,
-                              ),
-                              const SizedBox(height: AppTheme.spaceMD),
-                              Text(
-                                l.storageAccessNeeded,
-                                style: Theme.of(context).textTheme.headlineSmall,
-                              ),
-                              const SizedBox(height: AppTheme.spaceSM),
-                              Text(
-                                l.storageAccessExplanation,
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      color: context.appColors.textSecondary,
-                                    ),
-                              ),
-                              const SizedBox(height: AppTheme.spaceLG),
-                              ElevatedButton(
-                                onPressed: _scanFiles,
-                                child: Text(l.grantAccess),
-                              ),
-                              TextButton(
-                                onPressed: openAppSettings,
-                                child: Text(l.openSettings),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    : _isPreparingReview
-                        ? _buildScanProgressCard(context, fileService, l)
-                        : (fileService.isLoading && summary == null)
-                            ? _buildScanProgressCard(context, fileService, l)
-                            : totalCount == 0 &&
-                                    !fileService.isBackgroundScanning &&
-                                    !fileService.isLoading
-                                ? const EmptyState()
-                                : Card(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(
-                                        AppTheme.spaceMD,
-                                      ),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          if (fileService.isBackgroundScanning ||
-                                              fileService.isLoading)
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                bottom: AppTheme.spaceSM,
-                                              ),
-                                              child: LinearProgressIndicator(
-                                                value:
-                                                    fileService.totalEstimatedAssets >
-                                                            0
-                                                        ? fileService.scanProgress
-                                                        : null,
-                                                backgroundColor:
-                                                    Theme.of(context)
-                                                        .dividerColor,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary,
-                                                minHeight: 3,
-                                              ),
-                                            ),
-                                          Text(
-                                            l.filesToReview(totalCount),
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .headlineSmall,
-                                          ),
-                                          const SizedBox(
-                                            height: AppTheme.spaceSM,
-                                          ),
-                                          Text(
-                                            formatBytes(totalSize),
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall,
-                                          ),
-                                          const Divider(
-                                            height: AppTheme.spaceLG,
-                                          ),
-                                          _SummaryRow(
-                                            icon: Icons.photo_outlined,
-                                            label: l.photos,
-                                            count: photoCount,
-                                          ),
-                                          _SummaryRow(
-                                            icon: Icons.videocam_outlined,
-                                            label: l.videos,
-                                            count: videoCount,
-                                          ),
-                                          _SummaryRow(
-                                            icon: Icons.download_outlined,
-                                            label: l.downloads,
-                                            count: downloadCount,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-              ),
+              Expanded(child: topContent),
+              const SizedBox(height: AppTheme.spaceLG),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -502,10 +505,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: OutlinedButton(
                   onPressed: buttonsDisabled
                       ? null
-                      : () => Navigator.pushNamed(
-                            context,
-                            EpuraApp.routeStats,
-                          ),
+                      : () => Navigator.pushNamed(context, EpuraApp.routeStats),
                   child: Text(l.stats),
                 ),
               ),
@@ -538,10 +538,7 @@ class _SummaryRow extends StatelessWidget {
           const SizedBox(width: AppTheme.spaceSM),
           Text(label, style: Theme.of(context).textTheme.bodyMedium),
           const Spacer(),
-          Text(
-            '$count',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          Text('$count', style: Theme.of(context).textTheme.titleMedium),
         ],
       ),
     );

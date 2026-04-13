@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:provider/provider.dart';
@@ -73,82 +75,83 @@ class _ReviewScreenState extends State<ReviewScreen> {
   }
 
   Future<void> _syncAfterCompletion(
+    FileService fileService,
     ReviewCompletionResult result,
     SettingsProvider settings,
   ) async {
-    final fileService = context.read<FileService>();
     await fileService.resolveImportedDocumentsAfterReview(result);
     await fileService.refreshAllFiles(settings);
   }
 
-  Future<void> _completeReview({
-    void Function(int done, int total)? onProgress,
-  }) async {
+  void _syncAfterCompletionInBackground(
+    FileService fileService,
+    ReviewCompletionResult result,
+    SettingsProvider settings,
+  ) {
+    unawaited(
+      _syncAfterCompletion(fileService, result, settings).catchError((
+        Object error,
+        StackTrace stackTrace,
+      ) {
+        FlutterError.reportError(
+          FlutterErrorDetails(
+            exception: error,
+            stack: stackTrace,
+            library: 'review_completion',
+            context: ErrorDescription(
+              'while syncing files after review completion',
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Future<void> _promptLeaveReview() async {
+    final choice = await _showLeaveDialog();
+    await _handleLeaveChoice(choice);
+  }
+
+  Future<void> _startCompletionFlow() async {
+    if (_completing) return;
+
     final review = context.read<ReviewProvider>();
+    final fileService = context.read<FileService>();
     final db = context.read<DatabaseService>();
     final settings = context.read<SettingsProvider>();
+    setState(() {
+      _completing = true;
+      _deletionsDone = 0;
+      _deletionsTotal = review.pendingDeletionCount;
+      _completionProgress = _deletionsTotal > 0 ? 0.0 : 1.0;
+    });
+
     final result = await review.completeSession(
       db,
       settings,
-      onProgress: onProgress,
+      onProgress: (done, total) {
+        if (!mounted) return;
+        setState(() {
+          _deletionsDone = done;
+          _completionProgress = total > 0 ? done / total : 1.0;
+        });
+      },
     );
-    await _syncAfterCompletion(result, settings);
+
+    _syncAfterCompletionInBackground(fileService, result, settings);
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, EpuraApp.routeSummary);
   }
 
   Future<void> _handleLeaveChoice(LeaveReviewChoice choice) async {
     if (choice == LeaveReviewChoice.cancel || _completing) return;
 
-    final review = context.read<ReviewProvider>();
-    final navigator = Navigator.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-
     if (choice == LeaveReviewChoice.saveAndExit) {
-      _completing = true;
-      try {
-        await _completeReview();
-        if (!mounted) return;
-        final failureMessage = review.lastFailedDeletionCount > 0
-            ? AppLocalizations.of(context)!
-                .filesCouldNotBeDeleted(review.lastFailedDeletionCount)
-            : null;
-        navigator.pop();
-        if (failureMessage != null) {
-          messenger.showSnackBar(
-            SnackBar(
-              content: Text(failureMessage),
-            ),
-          );
-        }
-      } finally {
-        _completing = false;
-      }
+      await _startCompletionFlow();
     } else {
-      review.discardSession();
-      navigator.pop();
+      context.read<ReviewProvider>().discardSession();
+      Navigator.of(context).pop();
     }
-  }
-
-  void _checkCompletion() {
-    if (_completing) return;
-    final review = context.read<ReviewProvider>();
-    if (!review.isComplete) return;
-
-    _completing = true;
-    _deletionsTotal = review.pendingDeletionCount;
-    _completeReview(
-      onProgress: (done, total) {
-        if (mounted) {
-          setState(() {
-            _deletionsDone = done;
-            _completionProgress = total > 0 ? done / total : 1.0;
-          });
-        }
-      },
-    ).then((_) {
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, EpuraApp.routeSummary);
-      }
-    });
   }
 
   @override
@@ -156,11 +159,13 @@ class _ReviewScreenState extends State<ReviewScreen> {
     final review = context.watch<ReviewProvider>();
     final l = AppLocalizations.of(context)!;
 
-    if (review.isComplete) {
+    if (review.isComplete && !_completing) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _checkCompletion();
+        unawaited(_startCompletionFlow());
       });
+    }
 
+    if (_completing || review.isComplete) {
       if (_deletionsTotal > 0) {
         return Scaffold(
           body: Center(
@@ -192,26 +197,20 @@ class _ReviewScreenState extends State<ReviewScreen> {
         );
       }
 
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        final choice = await _showLeaveDialog();
-        await _handleLeaveChoice(choice);
+        await _promptLeaveReview();
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () async {
-              final choice = await _showLeaveDialog();
-              await _handleLeaveChoice(choice);
-            },
+            onPressed: _promptLeaveReview,
           ),
           title: Text(review.progress),
           centerTitle: true,
@@ -241,7 +240,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     child: Padding(
                       padding: const EdgeInsets.all(AppTheme.spaceSM),
                       child: Text(
-                        l.filesCouldNotBeDeleted(review.lastFailedDeletionCount),
+                        l.filesCouldNotBeDeleted(
+                          review.lastFailedDeletionCount,
+                        ),
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onErrorContainer,
                         ),
@@ -261,9 +262,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     backCardOffset: const Offset(0, 0),
                     allowedSwipeDirection:
                         const AllowedSwipeDirection.symmetric(
-                      horizontal: true,
-                      vertical: false,
-                    ),
+                          horizontal: true,
+                          vertical: false,
+                        ),
                     onSwipe: (previousIndex, currentIndex, direction) {
                       if (direction == CardSwiperDirection.left) {
                         review.deleteCurrent();
@@ -272,26 +273,24 @@ class _ReviewScreenState extends State<ReviewScreen> {
                       }
                       return true;
                     },
-                    cardBuilder: (
-                      context,
-                      index,
-                      percentThresholdX,
-                      percentThresholdY,
-                    ) {
-                      if (index >= review.queue.length) {
-                        return const SizedBox.shrink();
-                      }
-                      final item = review.queue[index];
-                      return ReviewCard(
-                        item: item,
-                        onKeep: () {
-                          _swiperController.swipe(CardSwiperDirection.right);
+                    cardBuilder:
+                        (context, index, percentThresholdX, percentThresholdY) {
+                          if (index >= review.queue.length) {
+                            return const SizedBox.shrink();
+                          }
+                          final item = review.queue[index];
+                          return ReviewCard(
+                            item: item,
+                            onKeep: () {
+                              _swiperController.swipe(
+                                CardSwiperDirection.right,
+                              );
+                            },
+                            onDelete: () {
+                              _swiperController.swipe(CardSwiperDirection.left);
+                            },
+                          );
                         },
-                        onDelete: () {
-                          _swiperController.swipe(CardSwiperDirection.left);
-                        },
-                      );
-                    },
                   ),
                 ),
               ),

@@ -102,6 +102,8 @@ void main() {
     await context.fileService.resolveImportedDocumentsAfterReview(result);
 
     expect(context.reviewProvider.bytesFreed, 50);
+    expect(context.reviewProvider.deletedCount, 1);
+    expect(context.reviewProvider.keptCount, 1);
     expect(result.failedDeletionItems, hasLength(1));
     expect(result.failedDeletionItems.first.contentUri, importedDocument.uri);
     expect(context.fileService.importedDocumentCount, 1);

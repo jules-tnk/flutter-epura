@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -47,6 +49,8 @@ class FakeDocumentAccessService implements DocumentAccessService {
   final List<String> releasedUris = [];
   final List<String> deletedUris = [];
   final Set<String> deleteFailures = {};
+  Completer<void>? deleteBarrier;
+  Completer<void>? releaseBarrier;
 
   @override
   Future<ScanFolderGrant?> pickFolder() async => nextFolder;
@@ -62,11 +66,19 @@ class FakeDocumentAccessService implements DocumentAccessService {
   @override
   Future<bool> deleteDocument(String uri) async {
     deletedUris.add(uri);
+    final barrier = deleteBarrier;
+    if (barrier != null) {
+      await barrier.future;
+    }
     return !deleteFailures.contains(uri);
   }
 
   @override
   Future<void> releasePersistedUriPermission(String uri) async {
+    final barrier = releaseBarrier;
+    if (barrier != null) {
+      await barrier.future;
+    }
     releasedUris.add(uri);
   }
 }
@@ -156,6 +168,7 @@ Future<TestContext> createTestContext({
 Widget buildTestApp({
   required Widget home,
   required TestContext context,
+  Map<String, WidgetBuilder> routes = const {},
 }) {
   return MultiProvider(
     providers: [
@@ -175,6 +188,7 @@ Widget buildTestApp({
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: home,
+      routes: routes,
     ),
   );
 }

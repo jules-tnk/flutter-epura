@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:photo_manager/photo_manager.dart';
 
 import '../models/review_item.dart';
 import '../models/review_session.dart';
@@ -95,7 +96,23 @@ class ReviewProvider extends ChangeNotifier {
     var bytesFreed = 0;
     final failedItems = <ReviewItem>[];
 
-    for (final item in deletions) {
+    final mediaLibraryItems = deletions
+        .where((item) => item.source == ReviewItemSource.mediaLibrary)
+        .toList();
+    final otherItems = deletions
+        .where((item) => item.source != ReviewItemSource.mediaLibrary)
+        .toList();
+
+    if (mediaLibraryItems.isNotEmpty) {
+      final mediaDeletionResult =
+          await _deleteMediaLibraryItems(mediaLibraryItems);
+      bytesFreed += mediaDeletionResult.bytesFreed;
+      failedItems.addAll(mediaDeletionResult.failedItems);
+      done += mediaLibraryItems.length;
+      onProgress?.call(done, total);
+    }
+
+    for (final item in otherItems) {
       final deleted = await _deleteItem(item);
       if (deleted) {
         bytesFreed += item.size;
@@ -110,6 +127,36 @@ class ReviewProvider extends ChangeNotifier {
       bytesFreed: bytesFreed,
       failedItems: failedItems,
     );
+  }
+
+  Future<_DeletionExecutionResult> _deleteMediaLibraryItems(
+    List<ReviewItem> items,
+  ) async {
+    try {
+      final deletedIds = await PhotoManager.editor.deleteWithIds(
+        items.map((item) => item.id).toList(),
+      );
+      var bytesFreed = 0;
+      final failedItems = <ReviewItem>[];
+
+      for (final item in items) {
+        if (deletedIds.contains(item.id)) {
+          bytesFreed += item.size;
+        } else {
+          failedItems.add(item);
+        }
+      }
+
+      return _DeletionExecutionResult(
+        bytesFreed: bytesFreed,
+        failedItems: failedItems,
+      );
+    } catch (_) {
+      return _DeletionExecutionResult(
+        bytesFreed: 0,
+        failedItems: items,
+      );
+    }
   }
 
   Future<bool> _deleteItem(ReviewItem item) async {
@@ -145,8 +192,13 @@ class ReviewProvider extends ChangeNotifier {
     final deletionResult =
         await _executePendingDeletions(onProgress: onProgress);
 
+    final failedDeletionCount = deletionResult.failedItems.length;
+    if (failedDeletionCount > 0) {
+      _deletedCount -= failedDeletionCount;
+      _keptCount += failedDeletionCount;
+    }
     _bytesFreed = deletionResult.bytesFreed;
-    _lastFailedDeletionCount = deletionResult.failedItems.length;
+    _lastFailedDeletionCount = failedDeletionCount;
     notifyListeners();
 
     final totalDecisions = _keptCount + _deletedCount + _skippedCount;
