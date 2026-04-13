@@ -88,13 +88,13 @@ class ReviewCard extends StatelessWidget {
                 _ActionButton(
                   icon: Icons.delete_outline,
                   label: l.delete,
-                  color: Theme.of(context).extension<AppColorsExtension>()!.danger,
+                  color: Theme.of(context).colorScheme.error,
                   onTap: onDelete,
                 ),
                 _ActionButton(
                   icon: Icons.check_circle_outline,
                   label: l.keep,
-                  color: Theme.of(context).extension<AppColorsExtension>()!.success,
+                  color: context.appColors.success,
                   onTap: onKeep,
                 ),
               ],

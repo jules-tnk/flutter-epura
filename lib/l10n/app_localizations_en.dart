@@ -236,14 +236,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpWhatIsEpuraBody =>
-      'Epura helps you review and clean up photos, videos, and downloads on your phone.';
+      'Epura helps you review and clean up photos, videos, files from folders you explicitly select, and downloaded files you manually import.';
 
   @override
   String get helpHowItWorks => 'How it works';
 
   @override
   String get helpHowItWorksBody =>
-      'Swipe right to keep a file, left to delete it, or tap \"Skip\" to decide later.';
+      'Swipe right to keep a file, left to delete it, or tap \"Skip\" to decide later. Photos and videos are scanned automatically, selected folders are rescanned with your permission, and downloaded files can be imported into the same review deck.';
 
   @override
   String get helpNotifications => 'Notifications';
@@ -276,7 +276,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanningPhotosAndVideos => 'Scanning photos & videos...';
 
   @override
-  String get scanningDownloads => 'Scanning downloads...';
+  String get scanningCustomFolders => 'Scanning selected folders...';
 
   @override
   String get cleaningUp => 'Cleaning up...';
@@ -294,6 +294,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanning => 'Scanning...';
+
+  @override
+  String get addDownloadedFiles => 'Add downloaded files';
+
+  @override
+  String clearImportedFiles(int count) {
+    return 'Clear imported files ($count)';
+  }
+
+  @override
+  String importedFilesAdded(int count) {
+    return '$count files added to your review queue.';
+  }
+
+  @override
+  String get importedFilesCleared =>
+      'Imported files cleared from the review queue.';
+
+  @override
+  String get customFoldersToScan => 'Custom folders to scan';
+
+  @override
+  String get addCustomFolder => 'Add folder';
+
+  @override
+  String get customFoldersHelp =>
+      'Choose folders you want Epura to rescan automatically. Access is limited to folders you explicitly select.';
+
+  @override
+  String get noCustomFolders =>
+      'No custom folders selected. By default, Epura only scans photos and videos.';
+
+  @override
+  String folderAdded(String name) {
+    return '$name added to folder scans.';
+  }
+
+  @override
+  String folderRemoved(String name) {
+    return '$name removed from folder scans.';
+  }
+
+  @override
+  String get downloadFolderSelectionHint =>
+      'Android 11+ does not allow apps to select the Downloads folder as a reusable folder grant. Use \"Add downloaded files\" on the home screen for Downloads instead.';
+
+  @override
+  String filesCouldNotBeDeleted(int count) {
+    return '$count files could not be deleted and were kept on your device.';
+  }
 
   @override
   String get appearance => 'Appearance';
@@ -333,7 +383,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get readTermsOfService => 'Read Terms of Service';
 
   @override
-  String get privacyPolicyLastUpdated => 'Last updated: March 11, 2026';
+  String get privacyPolicyLastUpdated => 'Last updated: April 13, 2026';
 
   @override
   String get privacyPolicyIntro =>
@@ -341,7 +391,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyPolicyAccess =>
-      'The app requests access to your device\'s media files (photos, videos) and downloads folder solely to display them within the app for your review. Files are only deleted when you explicitly choose to delete them.';
+      'The app requests access only to your device\'s media library and the folders or files you explicitly select through the Android system picker. Files are only deleted when you explicitly choose to delete them inside Epura.';
 
   @override
   String get privacyPolicyNoData =>
@@ -356,7 +406,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyPolicyPermStorage =>
-      'MANAGE_EXTERNAL_STORAGE: Used to access your Downloads folder for review.';
+      'Storage Access Framework grants: Used only for custom folders and downloaded files you explicitly select through the system file picker.';
 
   @override
   String get privacyPolicyPermNotif =>

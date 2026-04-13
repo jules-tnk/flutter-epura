@@ -527,7 +527,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpWhatIsEpuraBody.
   ///
   /// In en, this message translates to:
-  /// **'Epura helps you review and clean up photos, videos, and downloads on your phone.'**
+  /// **'Epura helps you review and clean up photos, videos, files from folders you explicitly select, and downloaded files you manually import.'**
   String get helpWhatIsEpuraBody;
 
   /// No description provided for @helpHowItWorks.
@@ -539,7 +539,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpHowItWorksBody.
   ///
   /// In en, this message translates to:
-  /// **'Swipe right to keep a file, left to delete it, or tap \"Skip\" to decide later.'**
+  /// **'Swipe right to keep a file, left to delete it, or tap \"Skip\" to decide later. Photos and videos are scanned automatically, selected folders are rescanned with your permission, and downloaded files can be imported into the same review deck.'**
   String get helpHowItWorksBody;
 
   /// No description provided for @helpNotifications.
@@ -596,11 +596,11 @@ abstract class AppLocalizations {
   /// **'Scanning photos & videos...'**
   String get scanningPhotosAndVideos;
 
-  /// No description provided for @scanningDownloads.
+  /// No description provided for @scanningCustomFolders.
   ///
   /// In en, this message translates to:
-  /// **'Scanning downloads...'**
-  String get scanningDownloads;
+  /// **'Scanning selected folders...'**
+  String get scanningCustomFolders;
 
   /// No description provided for @cleaningUp.
   ///
@@ -631,6 +631,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Scanning...'**
   String get scanning;
+
+  /// No description provided for @addDownloadedFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Add downloaded files'**
+  String get addDownloadedFiles;
+
+  /// No description provided for @clearImportedFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear imported files ({count})'**
+  String clearImportedFiles(int count);
+
+  /// No description provided for @importedFilesAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} files added to your review queue.'**
+  String importedFilesAdded(int count);
+
+  /// No description provided for @importedFilesCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported files cleared from the review queue.'**
+  String get importedFilesCleared;
+
+  /// No description provided for @customFoldersToScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom folders to scan'**
+  String get customFoldersToScan;
+
+  /// No description provided for @addCustomFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Add folder'**
+  String get addCustomFolder;
+
+  /// No description provided for @customFoldersHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose folders you want Epura to rescan automatically. Access is limited to folders you explicitly select.'**
+  String get customFoldersHelp;
+
+  /// No description provided for @noCustomFolders.
+  ///
+  /// In en, this message translates to:
+  /// **'No custom folders selected. By default, Epura only scans photos and videos.'**
+  String get noCustomFolders;
+
+  /// No description provided for @folderAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} added to folder scans.'**
+  String folderAdded(String name);
+
+  /// No description provided for @folderRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} removed from folder scans.'**
+  String folderRemoved(String name);
+
+  /// No description provided for @downloadFolderSelectionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Android 11+ does not allow apps to select the Downloads folder as a reusable folder grant. Use \"Add downloaded files\" on the home screen for Downloads instead.'**
+  String get downloadFolderSelectionHint;
+
+  /// No description provided for @filesCouldNotBeDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} files could not be deleted and were kept on your device.'**
+  String filesCouldNotBeDeleted(int count);
 
   /// No description provided for @appearance.
   ///
@@ -707,7 +779,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyLastUpdated.
   ///
   /// In en, this message translates to:
-  /// **'Last updated: March 11, 2026'**
+  /// **'Last updated: April 13, 2026'**
   String get privacyPolicyLastUpdated;
 
   /// No description provided for @privacyPolicyIntro.
@@ -719,7 +791,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyAccess.
   ///
   /// In en, this message translates to:
-  /// **'The app requests access to your device\'s media files (photos, videos) and downloads folder solely to display them within the app for your review. Files are only deleted when you explicitly choose to delete them.'**
+  /// **'The app requests access only to your device\'s media library and the folders or files you explicitly select through the Android system picker. Files are only deleted when you explicitly choose to delete them inside Epura.'**
   String get privacyPolicyAccess;
 
   /// No description provided for @privacyPolicyNoData.
@@ -743,7 +815,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyPermStorage.
   ///
   /// In en, this message translates to:
-  /// **'MANAGE_EXTERNAL_STORAGE: Used to access your Downloads folder for review.'**
+  /// **'Storage Access Framework grants: Used only for custom folders and downloaded files you explicitly select through the system file picker.'**
   String get privacyPolicyPermStorage;
 
   /// No description provided for @privacyPolicyPermNotif.

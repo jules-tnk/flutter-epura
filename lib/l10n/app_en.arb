@@ -110,9 +110,9 @@
   "forever": "Forever",
   "help": "Help",
   "helpWhatIsEpura": "What is Epura?",
-  "helpWhatIsEpuraBody": "Epura helps you review and clean up photos, videos, and downloads on your phone.",
+  "helpWhatIsEpuraBody": "Epura helps you review and clean up photos, videos, files from folders you explicitly select, and downloaded files you manually import.",
   "helpHowItWorks": "How it works",
-  "helpHowItWorksBody": "Swipe right to keep a file, left to delete it, or tap \"Skip\" to decide later.",
+  "helpHowItWorksBody": "Swipe right to keep a file, left to delete it, or tap \"Skip\" to decide later. Photos and videos are scanned automatically, selected folders are rescanned with your permission, and downloaded files can be imported into the same review deck.",
   "helpNotifications": "Notifications",
   "helpNotificationsBody": "Turn on reminders to get notified daily or weekly to clean up your storage.",
   "helpLookback": "Lookback",
@@ -123,7 +123,7 @@
   "preparingReview": "Preparing review",
   "filesScanned": "files scanned",
   "scanningPhotosAndVideos": "Scanning photos & videos...",
-  "scanningDownloads": "Scanning downloads...",
+  "scanningCustomFolders": "Scanning selected folders...",
   "cleaningUp": "Cleaning up...",
   "filesDeletedProgress": "{done} / {total} files deleted",
   "@filesDeletedProgress": {
@@ -135,6 +135,43 @@
   "loadingStats": "Loading stats...",
   "startingReview": "Starting review...",
   "scanning": "Scanning...",
+  "addDownloadedFiles": "Add downloaded files",
+  "clearImportedFiles": "Clear imported files ({count})",
+  "@clearImportedFiles": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "importedFilesAdded": "{count} files added to your review queue.",
+  "@importedFilesAdded": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "importedFilesCleared": "Imported files cleared from the review queue.",
+  "customFoldersToScan": "Custom folders to scan",
+  "addCustomFolder": "Add folder",
+  "customFoldersHelp": "Choose folders you want Epura to rescan automatically. Access is limited to folders you explicitly select.",
+  "noCustomFolders": "No custom folders selected. By default, Epura only scans photos and videos.",
+  "folderAdded": "{name} added to folder scans.",
+  "@folderAdded": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "folderRemoved": "{name} removed from folder scans.",
+  "@folderRemoved": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "downloadFolderSelectionHint": "Android 11+ does not allow apps to select the Downloads folder as a reusable folder grant. Use \"Add downloaded files\" on the home screen for Downloads instead.",
+  "filesCouldNotBeDeleted": "{count} files could not be deleted and were kept on your device.",
+  "@filesCouldNotBeDeleted": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
 
   "appearance": "Appearance",
   "light": "Light",
@@ -151,13 +188,13 @@
   "readPrivacyPolicy": "Read Privacy Policy",
   "readTermsOfService": "Read Terms of Service",
 
-  "privacyPolicyLastUpdated": "Last updated: March 11, 2026",
+  "privacyPolicyLastUpdated": "Last updated: April 13, 2026",
   "privacyPolicyIntro": "Epura does not collect, transmit, or share any personal data.",
-  "privacyPolicyAccess": "The app requests access to your device's media files (photos, videos) and downloads folder solely to display them within the app for your review. Files are only deleted when you explicitly choose to delete them.",
+  "privacyPolicyAccess": "The app requests access only to your device's media library and the folders or files you explicitly select through the Android system picker. Files are only deleted when you explicitly choose to delete them inside Epura.",
   "privacyPolicyNoData": "No data leaves your device. No analytics, no tracking, no accounts required.",
   "privacyPolicyPermissions": "Permissions",
   "privacyPolicyPermMedia": "READ_MEDIA_IMAGES / READ_MEDIA_VIDEO: Used to display your photos and videos for review.",
-  "privacyPolicyPermStorage": "MANAGE_EXTERNAL_STORAGE: Used to access your Downloads folder for review.",
+  "privacyPolicyPermStorage": "Storage Access Framework grants: Used only for custom folders and downloaded files you explicitly select through the system file picker.",
   "privacyPolicyPermNotif": "POST_NOTIFICATIONS: Used to send periodic reminders.",
   "privacyPolicyPermAlarm": "SCHEDULE_EXACT_ALARM / RECEIVE_BOOT_COMPLETED: Used to deliver reminders at chosen times.",
 

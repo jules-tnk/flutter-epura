@@ -19,7 +19,7 @@ class EmptyState extends StatelessWidget {
             Icon(
               Icons.check_circle_outline,
               size: 80,
-              color: Theme.of(context).extension<AppColorsExtension>()!.textTertiary,
+              color: context.appColors.textTertiary,
             ),
             const SizedBox(height: AppTheme.spaceLG),
             Text(
@@ -31,7 +31,7 @@ class EmptyState extends StatelessWidget {
             Text(
               l.noFilesToReview,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).extension<AppColorsExtension>()!.textSecondary,
+                    color: context.appColors.textSecondary,
                   ),
               textAlign: TextAlign.center,
             ),

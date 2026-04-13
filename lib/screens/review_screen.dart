@@ -4,9 +4,10 @@ import 'package:provider/provider.dart';
 
 import '../app.dart';
 import '../l10n/app_localizations.dart';
+import '../providers/file_service.dart';
 import '../providers/review_provider.dart';
-import '../services/database_service.dart';
 import '../providers/settings_provider.dart';
+import '../services/database_service.dart';
 import '../services/thumbnail_cache.dart';
 import '../theme/app_theme.dart';
 import '../widgets/review_card.dart';
@@ -30,10 +31,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final thumbCache = context.read<ThumbnailCache>();
       final review = context.read<ReviewProvider>();
-      thumbCache.prefetch(review.queue);
+      await thumbCache.prefetch(review.queue.skip(1).take(9).toList());
     });
   }
 
@@ -56,11 +57,13 @@ class _ReviewScreenState extends State<ReviewScreen> {
             child: Text(l.cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, LeaveReviewChoice.discardAndExit),
+            onPressed: () =>
+                Navigator.pop(context, LeaveReviewChoice.discardAndExit),
             child: Text(l.discardAndExit),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(context, LeaveReviewChoice.saveAndExit),
+            onPressed: () =>
+                Navigator.pop(context, LeaveReviewChoice.saveAndExit),
             child: Text(l.saveAndExit),
           ),
         ],
@@ -69,20 +72,53 @@ class _ReviewScreenState extends State<ReviewScreen> {
     return result ?? LeaveReviewChoice.cancel;
   }
 
+  Future<void> _syncAfterCompletion(
+    ReviewCompletionResult result,
+    SettingsProvider settings,
+  ) async {
+    final fileService = context.read<FileService>();
+    await fileService.resolveImportedDocumentsAfterReview(result);
+    await fileService.refreshAllFiles(settings);
+  }
+
+  Future<void> _completeReview({
+    void Function(int done, int total)? onProgress,
+  }) async {
+    final review = context.read<ReviewProvider>();
+    final db = context.read<DatabaseService>();
+    final settings = context.read<SettingsProvider>();
+    final result = await review.completeSession(
+      db,
+      settings,
+      onProgress: onProgress,
+    );
+    await _syncAfterCompletion(result, settings);
+  }
+
   Future<void> _handleLeaveChoice(LeaveReviewChoice choice) async {
     if (choice == LeaveReviewChoice.cancel || _completing) return;
 
     final review = context.read<ReviewProvider>();
     final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
 
     if (choice == LeaveReviewChoice.saveAndExit) {
       _completing = true;
       try {
-        final db = context.read<DatabaseService>();
-        final settings = context.read<SettingsProvider>();
-        await review.completeSession(db, settings);
+        await _completeReview();
         if (!mounted) return;
+        final failureMessage = review.lastFailedDeletionCount > 0
+            ? AppLocalizations.of(context)!
+                .filesCouldNotBeDeleted(review.lastFailedDeletionCount)
+            : null;
         navigator.pop();
+        if (failureMessage != null) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(failureMessage),
+            ),
+          );
+        }
       } finally {
         _completing = false;
       }
@@ -95,24 +131,24 @@ class _ReviewScreenState extends State<ReviewScreen> {
   void _checkCompletion() {
     if (_completing) return;
     final review = context.read<ReviewProvider>();
-    if (review.isComplete) {
-      _completing = true;
-      _deletionsTotal = review.pendingDeletionCount;
-      final db = context.read<DatabaseService>();
-      final settings = context.read<SettingsProvider>();
-      review.completeSession(db, settings, onProgress: (done, total) {
+    if (!review.isComplete) return;
+
+    _completing = true;
+    _deletionsTotal = review.pendingDeletionCount;
+    _completeReview(
+      onProgress: (done, total) {
         if (mounted) {
           setState(() {
             _deletionsDone = done;
             _completionProgress = total > 0 ? done / total : 1.0;
           });
         }
-      }).then((_) {
-        if (mounted) {
-          Navigator.pushReplacementNamed(context, EpuraApp.routeSummary);
-        }
-      });
-    }
+      },
+    ).then((_) {
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, EpuraApp.routeSummary);
+      }
+    });
   }
 
   @override
@@ -191,6 +227,28 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 color: Theme.of(context).colorScheme.primary,
                 minHeight: 3,
               ),
+              if (review.lastFailedDeletionCount > 0)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.spaceMD,
+                    AppTheme.spaceMD,
+                    AppTheme.spaceMD,
+                    0,
+                  ),
+                  child: Material(
+                    color: Theme.of(context).colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppTheme.spaceSM),
+                      child: Text(
+                        l.filesCouldNotBeDeleted(review.lastFailedDeletionCount),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onErrorContainer,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(AppTheme.spaceMD),
@@ -214,8 +272,12 @@ class _ReviewScreenState extends State<ReviewScreen> {
                       }
                       return true;
                     },
-                    cardBuilder: (context, index, percentThresholdX,
-                        percentThresholdY) {
+                    cardBuilder: (
+                      context,
+                      index,
+                      percentThresholdX,
+                      percentThresholdY,
+                    ) {
                       if (index >= review.queue.length) {
                         return const SizedBox.shrink();
                       }

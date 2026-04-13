@@ -1,7 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/scan_folder_grant.dart';
+import '../services/document_access_service.dart';
 import '../services/notification_service.dart';
 
 class SettingsProvider extends ChangeNotifier {
@@ -9,7 +13,7 @@ class SettingsProvider extends ChangeNotifier {
   static const String _keyReminderMinute = 'reminderMinute';
   static const String _keyScanPhotos = 'scanPhotos';
   static const String _keyScanVideos = 'scanVideos';
-  static const String _keyScanDownloads = 'scanDownloads';
+  static const String _keyCustomFolders = 'customFolders';
   static const String _keyLastReviewTimestamp = 'lastReviewTimestamp';
   static const String _keyNotificationsEnabled = 'notificationsEnabled';
   static const String _keyLocale = 'locale';
@@ -19,14 +23,18 @@ class SettingsProvider extends ChangeNotifier {
   static const String _keyHasAcceptedTerms = 'hasAcceptedTerms';
 
   final NotificationService _notificationService;
+  final DocumentAccessService _documentAccessService;
   late final SharedPreferences _prefs;
 
-  SettingsProvider(this._notificationService);
+  SettingsProvider(
+    this._notificationService,
+    this._documentAccessService,
+  );
 
   TimeOfDay _reminderTime = const TimeOfDay(hour: 20, minute: 0);
   bool _scanPhotos = true;
   bool _scanVideos = true;
-  bool _scanDownloads = true;
+  List<ScanFolderGrant> _customFolders = const [];
   bool _notificationsEnabled = false;
   String? _localeCode;
   DateTime? _lastReviewTimestamp;
@@ -39,7 +47,7 @@ class SettingsProvider extends ChangeNotifier {
   TimeOfDay get reminderTime => _reminderTime;
   bool get scanPhotos => _scanPhotos;
   bool get scanVideos => _scanVideos;
-  bool get scanDownloads => _scanDownloads;
+  List<ScanFolderGrant> get customFolders => List.unmodifiable(_customFolders);
   bool get notificationsEnabled => _notificationsEnabled;
   Locale? get locale => _localeCode != null ? Locale(_localeCode!) : null;
   String? get localeCode => _localeCode;
@@ -70,11 +78,17 @@ class SettingsProvider extends ChangeNotifier {
 
     _scanPhotos = _prefs.getBool(_keyScanPhotos) ?? true;
     _scanVideos = _prefs.getBool(_keyScanVideos) ?? true;
-    _scanDownloads = _prefs.getBool(_keyScanDownloads) ?? true;
+    _customFolders = (_prefs.getStringList(_keyCustomFolders) ?? const [])
+        .map((raw) => ScanFolderGrant.fromJson(
+              jsonDecode(raw) as Map<String, dynamic>,
+            ))
+        .toList();
     _notificationsEnabled = _prefs.getBool(_keyNotificationsEnabled) ?? false;
     _localeCode = _prefs.getString(_keyLocale);
-    _notificationInterval = _prefs.getString(_keyNotificationInterval) ?? 'daily';
-    _notificationDayOfWeek = _prefs.getInt(_keyNotificationDayOfWeek) ?? DateTime.monday;
+    _notificationInterval =
+        _prefs.getString(_keyNotificationInterval) ?? 'daily';
+    _notificationDayOfWeek =
+        _prefs.getInt(_keyNotificationDayOfWeek) ?? DateTime.monday;
     _themeMode = _prefs.getString(_keyThemeMode) ?? 'system';
     _hasAcceptedTerms = _prefs.getBool(_keyHasAcceptedTerms) ?? false;
 
@@ -83,8 +97,13 @@ class SettingsProvider extends ChangeNotifier {
         timestampStr != null ? DateTime.tryParse(timestampStr) : null;
   }
 
-  /// Schedules the reminder if notifications are enabled.
-  /// Does NOT call notifyListeners — callers are responsible for that.
+  Future<void> _persistCustomFolders() async {
+    await _prefs.setStringList(
+      _keyCustomFolders,
+      _customFolders.map((entry) => jsonEncode(entry.toJson())).toList(),
+    );
+  }
+
   Future<void> _scheduleIfEnabled() async {
     if (_notificationsEnabled) {
       _nextNotificationTime = await _notificationService.scheduleReminder(
@@ -119,10 +138,24 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setScanDownloads(bool value) async {
-    if (_scanDownloads == value) return;
-    _scanDownloads = value;
-    await _prefs.setBool(_keyScanDownloads, value);
+  Future<ScanFolderGrant?> addCustomFolder() async {
+    final folder = await _documentAccessService.pickFolder();
+    if (folder == null ||
+        _customFolders.any((entry) => entry.uri == folder.uri)) {
+      return null;
+    }
+
+    _customFolders = [..._customFolders, folder];
+    await _persistCustomFolders();
+    notifyListeners();
+    return folder;
+  }
+
+  Future<void> removeCustomFolder(ScanFolderGrant folder) async {
+    _customFolders =
+        _customFolders.where((entry) => entry.uri != folder.uri).toList();
+    await _persistCustomFolders();
+    await _documentAccessService.releasePersistedUriPermission(folder.uri);
     notifyListeners();
   }
 
@@ -190,7 +223,9 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> setLastReviewTimestamp(DateTime timestamp) async {
     _lastReviewTimestamp = timestamp;
     await _prefs.setString(
-        _keyLastReviewTimestamp, timestamp.toIso8601String());
+      _keyLastReviewTimestamp,
+      timestamp.toIso8601String(),
+    );
     notifyListeners();
   }
 

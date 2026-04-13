@@ -236,14 +236,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get helpWhatIsEpuraBody =>
-      'Epura vous aide à examiner et nettoyer les photos, vidéos et téléchargements sur votre téléphone.';
+      'Epura vous aide à examiner et nettoyer les photos, vidéos, les fichiers des dossiers que vous sélectionnez explicitement et les fichiers téléchargés que vous importez manuellement.';
 
   @override
   String get helpHowItWorks => 'Comment ça marche';
 
   @override
   String get helpHowItWorksBody =>
-      'Glissez à droite pour garder un fichier, à gauche pour le supprimer, ou appuyez sur « Passer » pour décider plus tard.';
+      'Glissez à droite pour garder un fichier, à gauche pour le supprimer, ou appuyez sur « Passer » pour décider plus tard. Les photos et vidéos sont scannées automatiquement, les dossiers sélectionnés sont rescannés avec votre autorisation, et les fichiers téléchargés peuvent être importés dans la même pile d\'examen.';
 
   @override
   String get helpNotifications => 'Notifications';
@@ -276,7 +276,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get scanningPhotosAndVideos => 'Scan des photos et vidéos...';
 
   @override
-  String get scanningDownloads => 'Scan des téléchargements...';
+  String get scanningCustomFolders => 'Scan des dossiers sélectionnés...';
 
   @override
   String get cleaningUp => 'Nettoyage en cours...';
@@ -294,6 +294,56 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get scanning => 'Scan en cours...';
+
+  @override
+  String get addDownloadedFiles => 'Ajouter des fichiers téléchargés';
+
+  @override
+  String clearImportedFiles(int count) {
+    return 'Effacer les fichiers importés ($count)';
+  }
+
+  @override
+  String importedFilesAdded(int count) {
+    return '$count fichiers ajoutés à votre file d\'examen.';
+  }
+
+  @override
+  String get importedFilesCleared =>
+      'Les fichiers importés ont été retirés de la file d\'examen.';
+
+  @override
+  String get customFoldersToScan => 'Dossiers personnalisés à scanner';
+
+  @override
+  String get addCustomFolder => 'Ajouter un dossier';
+
+  @override
+  String get customFoldersHelp =>
+      'Choisissez les dossiers qu\'Epura doit rescanner automatiquement. L\'accès est limité aux dossiers que vous sélectionnez explicitement.';
+
+  @override
+  String get noCustomFolders =>
+      'Aucun dossier personnalisé sélectionné. Par défaut, Epura ne scanne que les photos et les vidéos.';
+
+  @override
+  String folderAdded(String name) {
+    return '$name ajouté aux scans de dossiers.';
+  }
+
+  @override
+  String folderRemoved(String name) {
+    return '$name retiré des scans de dossiers.';
+  }
+
+  @override
+  String get downloadFolderSelectionHint =>
+      'Android 11+ n\'autorise pas les applications à sélectionner le dossier Téléchargements comme accès de dossier réutilisable. Utilisez plutôt « Ajouter des fichiers téléchargés » sur l\'écran d\'accueil.';
+
+  @override
+  String filesCouldNotBeDeleted(int count) {
+    return '$count fichiers n\'ont pas pu être supprimés et ont été conservés sur votre appareil.';
+  }
 
   @override
   String get appearance => 'Apparence';
@@ -333,7 +383,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get readTermsOfService => 'Lire les conditions d\'utilisation';
 
   @override
-  String get privacyPolicyLastUpdated => 'Dernière mise à jour : 11 mars 2026';
+  String get privacyPolicyLastUpdated => 'Dernière mise à jour : 13 avril 2026';
 
   @override
   String get privacyPolicyIntro =>
@@ -341,7 +391,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get privacyPolicyAccess =>
-      'L\'application demande l\'accès aux fichiers média de votre appareil (photos, vidéos) et au dossier Téléchargements uniquement pour les afficher dans l\'application. Les fichiers ne sont supprimés que lorsque vous le décidez explicitement.';
+      'L\'application demande l\'accès uniquement à la photothèque de votre appareil et aux dossiers ou fichiers que vous sélectionnez explicitement via le sélecteur système Android. Les fichiers ne sont supprimés que lorsque vous choisissez explicitement de les supprimer dans Epura.';
 
   @override
   String get privacyPolicyNoData =>
@@ -356,7 +406,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get privacyPolicyPermStorage =>
-      'MANAGE_EXTERNAL_STORAGE : utilisée pour accéder au dossier Téléchargements.';
+      'Autorisations Storage Access Framework : utilisées uniquement pour les dossiers personnalisés et les fichiers téléchargés que vous sélectionnez explicitement dans le sélecteur système.';
 
   @override
   String get privacyPolicyPermNotif =>

@@ -7,6 +7,7 @@ import 'providers/review_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/stats_provider.dart';
 import 'services/database_service.dart';
+import 'services/document_access_service.dart';
 import 'services/notification_service.dart';
 import 'services/thumbnail_cache.dart';
 
@@ -15,12 +16,14 @@ void main() async {
 
   final dbService = DatabaseService();
   final notificationService = NotificationService();
-  final fileService = FileService();
+  const documentAccessService = MethodChannelDocumentAccessService();
+  final fileService = FileService(documentAccessService);
 
   // Init DB, notifications, and file service cache in parallel
   await Future.wait([dbService.init(), notificationService.init(), fileService.init()]);
 
-  final settingsProvider = SettingsProvider(notificationService);
+  final settingsProvider =
+      SettingsProvider(notificationService, documentAccessService);
   await settingsProvider.init();
 
   runApp(
@@ -28,11 +31,14 @@ void main() async {
       providers: [
         ChangeNotifierProvider.value(value: settingsProvider),
         ChangeNotifierProvider.value(value: fileService),
-        ChangeNotifierProvider(create: (_) => ReviewProvider()),
+        ChangeNotifierProvider(
+          create: (_) => ReviewProvider(documentAccessService),
+        ),
         ChangeNotifierProvider(create: (_) => StatsProvider()),
         Provider.value(value: dbService),
         Provider.value(value: notificationService),
-        Provider(create: (_) => ThumbnailCache()),
+        Provider<DocumentAccessService>.value(value: documentAccessService),
+        ChangeNotifierProvider(create: (_) => ThumbnailCache()),
       ],
       child: const EpuraApp(),
     ),

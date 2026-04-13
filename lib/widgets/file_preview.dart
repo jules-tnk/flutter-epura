@@ -14,6 +14,10 @@ class FilePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (item.source != ReviewItemSource.mediaLibrary) {
+      return _buildDocumentPreview(context);
+    }
+
     switch (item.type) {
       case FileItemType.photo:
         return _CachedThumbnail(
@@ -22,6 +26,17 @@ class FilePreview extends StatelessWidget {
         );
       case FileItemType.video:
         return _CachedVideoThumbnail(itemId: item.id);
+      case FileItemType.download:
+        return _buildDownloadPreview(context);
+    }
+  }
+
+  Widget _buildDocumentPreview(BuildContext context) {
+    switch (item.type) {
+      case FileItemType.photo:
+        return buildPlaceholder(context, Icons.photo_outlined);
+      case FileItemType.video:
+        return buildPlaceholder(context, Icons.videocam_outlined);
       case FileItemType.download:
         return _buildDownloadPreview(context);
     }
@@ -65,7 +80,7 @@ class FilePreview extends StatelessWidget {
         child: Icon(
           icon,
           size: 64,
-          color: Theme.of(context).extension<AppColorsExtension>()!.textTertiary,
+          color: context.appColors.textTertiary,
         ),
       ),
     );
@@ -83,7 +98,7 @@ class _CachedThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Uint8List? bytes = context.read<ThumbnailCache>().get(itemId);
+    final Uint8List? bytes = context.watch<ThumbnailCache>().get(itemId);
 
     if (bytes == null) {
       return FilePreview.buildPlaceholder(context, fallbackIcon);
@@ -108,7 +123,7 @@ class _CachedVideoThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Uint8List? bytes = context.read<ThumbnailCache>().get(itemId);
+    final Uint8List? bytes = context.watch<ThumbnailCache>().get(itemId);
 
     if (bytes == null) {
       return FilePreview.buildPlaceholder(context, Icons.videocam_outlined);

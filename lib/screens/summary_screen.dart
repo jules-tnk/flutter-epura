@@ -27,7 +27,7 @@ class SummaryScreen extends StatelessWidget {
               Icon(
                 Icons.check_circle_outline,
                 size: 96,
-                color: Theme.of(context).extension<AppColorsExtension>()!.success,
+                color: context.appColors.success,
               ),
               const SizedBox(height: AppTheme.spaceLG),
 
@@ -36,6 +36,22 @@ class SummaryScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.displayMedium,
               ),
               const SizedBox(height: AppTheme.spaceXL),
+
+              if (review.lastFailedDeletionCount > 0) ...[
+                Card(
+                  color: Theme.of(context).colorScheme.errorContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppTheme.spaceMD),
+                    child: Text(
+                      l.filesCouldNotBeDeleted(review.lastFailedDeletionCount),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spaceLG),
+              ],
 
               // Stats card
               Card(
@@ -47,21 +63,21 @@ class SummaryScreen extends StatelessWidget {
                         icon: Icons.check_circle_outline,
                         label: l.kept,
                         value: '${review.keptCount}',
-                        color: Theme.of(context).extension<AppColorsExtension>()!.success,
+                        color: context.appColors.success,
                       ),
                       const Divider(height: AppTheme.spaceMD),
                       _StatRow(
                         icon: Icons.delete_outline,
                         label: l.deleted,
                         value: '${review.deletedCount}',
-                        color: Theme.of(context).extension<AppColorsExtension>()!.danger,
+                        color: Theme.of(context).colorScheme.error,
                       ),
                       const Divider(height: AppTheme.spaceMD),
                       _StatRow(
                         icon: Icons.skip_next_outlined,
                         label: l.skipped,
                         value: '${review.skippedCount}',
-                        color: Theme.of(context).extension<AppColorsExtension>()!.textSecondary,
+                        color: context.appColors.textSecondary,
                       ),
                       const Divider(height: AppTheme.spaceMD),
                       _StatRow(
@@ -80,7 +96,7 @@ class SummaryScreen extends StatelessWidget {
               Text(
                 l.motivationalMessage,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).extension<AppColorsExtension>()!.textSecondary,
+                      color: context.appColors.textSecondary,
                     ),
                 textAlign: TextAlign.center,
               ),

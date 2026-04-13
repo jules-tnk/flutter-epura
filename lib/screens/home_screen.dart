@@ -9,11 +9,12 @@ import '../models/review_item.dart';
 import '../providers/file_service.dart';
 import '../providers/review_provider.dart';
 import '../providers/settings_provider.dart';
+import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/format_utils.dart';
 import '../widgets/empty_state.dart';
-import '../services/notification_service.dart';
 import '../widgets/lookback_picker.dart';
+import '../services/thumbnail_cache.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,6 +25,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _isPreparingReview = false;
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
 
   @override
   void initState() {
@@ -65,13 +72,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: AppTheme.spaceLG),
                 TextButton(
-                  onPressed: () => Navigator.pushNamed(
-                      ctx, EpuraApp.routePrivacyPolicy),
+                  onPressed: () =>
+                      Navigator.pushNamed(ctx, EpuraApp.routePrivacyPolicy),
                   child: Text(l.readPrivacyPolicy),
                 ),
                 TextButton(
-                  onPressed: () => Navigator.pushNamed(
-                      ctx, EpuraApp.routeTermsOfService),
+                  onPressed: () =>
+                      Navigator.pushNamed(ctx, EpuraApp.routeTermsOfService),
                   child: Text(l.readTermsOfService),
                 ),
                 const SizedBox(height: AppTheme.spaceMD),
@@ -96,8 +103,82 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _scanFiles() async {
     final fileService = context.read<FileService>();
     final settings = context.read<SettingsProvider>();
-    await fileService.requestPermissions();
-    await fileService.scanForNewFiles(settings, since: DateTime(1970), updateCache: true);
+    await fileService.requestPermissions(settings);
+    await fileService.refreshAllFiles(settings);
+  }
+
+  List<ReviewItem> _firstPreviewableMedia(List<ReviewItem> items) {
+    return items
+        .where((item) =>
+            item.source == ReviewItemSource.mediaLibrary &&
+            item.type != FileItemType.download)
+        .take(1)
+        .toList();
+  }
+
+  Future<void> _importDownloadedFiles() async {
+    final fileService = context.read<FileService>();
+    final settings = context.read<SettingsProvider>();
+    final importedCount = await fileService.importDownloadDocuments();
+    if (!mounted || importedCount == 0) return;
+
+    await fileService.refreshAllFiles(settings);
+    if (!mounted) return;
+
+    _showMessage(AppLocalizations.of(context)!.importedFilesAdded(importedCount));
+  }
+
+  Future<void> _clearImportedFiles() async {
+    final fileService = context.read<FileService>();
+    final settings = context.read<SettingsProvider>();
+    await fileService.clearImportedDocuments();
+    await fileService.refreshAllFiles(settings);
+    if (!mounted) return;
+
+    _showMessage(AppLocalizations.of(context)!.importedFilesCleared);
+  }
+
+  Future<void> _startReview() async {
+    final settings = context.read<SettingsProvider>();
+    final fileService = context.read<FileService>();
+    final reviewProvider = context.read<ReviewProvider>();
+    final navigator = Navigator.of(context);
+
+    final result = await LookbackPicker.show(
+      context,
+      lastReviewTimestamp: settings.lastReviewTimestamp,
+    );
+    if (result == null || !mounted) return;
+
+    setState(() => _isPreparingReview = true);
+
+    try {
+      await fileService.requestPermissions(settings);
+      if (!mounted) return;
+
+      await fileService.scanForNewFiles(settings, since: result.since);
+      if (!mounted) return;
+
+      final scannedItems = fileService.items;
+      if (scannedItems.isEmpty) {
+        setState(() => _isPreparingReview = false);
+        return;
+      }
+
+      final firstPreviewable = _firstPreviewableMedia(scannedItems);
+      if (firstPreviewable.isNotEmpty) {
+        await context.read<ThumbnailCache>().prefetch(firstPreviewable);
+      }
+      if (!mounted) return;
+
+      reviewProvider.startReview(scannedItems);
+      setState(() => _isPreparingReview = false);
+      navigator.pushNamed(EpuraApp.routeReview);
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isPreparingReview = false);
+      }
+    }
   }
 
   Future<void> _requestNotifPermissionIfFirstRun() async {
@@ -119,14 +200,18 @@ class _HomeScreenState extends State<HomeScreen> {
     switch (phase) {
       case ScanPhase.scanningMedia:
         return l.scanningPhotosAndVideos;
-      case ScanPhase.scanningDownloads:
-        return l.scanningDownloads;
+      case ScanPhase.scanningCustomFolders:
+        return l.scanningCustomFolders;
       case ScanPhase.idle:
         return l.startingReview;
     }
   }
 
-  Widget _buildScanProgressCard(BuildContext context, FileService fileService, AppLocalizations l) {
+  Widget _buildScanProgressCard(
+    BuildContext context,
+    FileService fileService,
+    AppLocalizations l,
+  ) {
     final hasTotal = fileService.totalEstimatedAssets > 0;
 
     return Card(
@@ -140,7 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
-                color: Theme.of(context).extension<AppColorsExtension>()!.textTertiary,
+                color: context.appColors.textTertiary,
                 letterSpacing: 0.5,
               ),
             ),
@@ -162,7 +247,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w400,
-                        color: Theme.of(context).extension<AppColorsExtension>()!.textTertiary,
+                        color: context.appColors.textTertiary,
                       ),
                     ),
                   ],
@@ -173,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 l.filesScanned,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Theme.of(context).extension<AppColorsExtension>()!.textTertiary,
+                  color: context.appColors.textTertiary,
                 ),
               ),
               const SizedBox(height: AppTheme.spaceMD),
@@ -189,12 +274,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
             const SizedBox(height: AppTheme.spaceSM),
             Text(
-              hasTotal
-                  ? _scanPhaseText(l, fileService.scanPhase)
-                  : l.scanning,
+              hasTotal ? _scanPhaseText(l, fileService.scanPhase) : l.scanning,
               style: TextStyle(
                 fontSize: 11,
-                color: Theme.of(context).extension<AppColorsExtension>()!.textTertiary,
+                color: context.appColors.textTertiary,
               ),
             ),
           ],
@@ -209,11 +292,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final l = AppLocalizations.of(context)!;
     final items = fileService.items;
 
-    // Resolve counts from fresh items or cached summary
-    final hasFreshData = !fileService.isLoading && !fileService.isBackgroundScanning;
+    final hasFreshData =
+        !fileService.isLoading && !fileService.isBackgroundScanning;
     final summary = hasFreshData ? null : fileService.cachedSummary;
 
-    int photoCount, videoCount, downloadCount, totalSize;
+    int photoCount;
+    int videoCount;
+    int downloadCount;
+    int totalSize;
     if (summary != null) {
       photoCount = summary.photoCount;
       videoCount = summary.videoCount;
@@ -224,9 +310,9 @@ class _HomeScreenState extends State<HomeScreen> {
       videoCount = 0;
       downloadCount = 0;
       totalSize = 0;
-      for (final i in items) {
-        totalSize += i.size;
-        switch (i.type) {
+      for (final item in items) {
+        totalSize += item.size;
+        switch (item.type) {
           case FileItemType.photo:
             photoCount++;
           case FileItemType.video:
@@ -237,7 +323,6 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
     final totalCount = photoCount + videoCount + downloadCount;
-
     final buttonsDisabled = _isPreparingReview;
 
     return Scaffold(
@@ -246,7 +331,6 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.all(AppTheme.spaceLG),
           child: Column(
             children: [
-              // Header row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -268,24 +352,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               const SizedBox(height: AppTheme.spaceXL),
-
-              // Content
               Expanded(
-                child: fileService.permissionDenied
+                child: fileService.permissionDenied && totalCount == 0
                     ? Center(
                         child: Padding(
                           padding: const EdgeInsets.all(AppTheme.spaceLG),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.folder_off_outlined,
-                                  size: 64, color: Theme.of(context).extension<AppColorsExtension>()!.textTertiary),
+                              Icon(
+                                Icons.folder_off_outlined,
+                                size: 64,
+                                color: context.appColors.textTertiary,
+                              ),
                               const SizedBox(height: AppTheme.spaceMD),
                               Text(
                                 l.storageAccessNeeded,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall,
+                                style: Theme.of(context).textTheme.headlineSmall,
                               ),
                               const SizedBox(height: AppTheme.spaceSM),
                               Text(
@@ -295,7 +378,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     .textTheme
                                     .bodyMedium
                                     ?.copyWith(
-                                        color: Theme.of(context).extension<AppColorsExtension>()!.textSecondary),
+                                      color: context.appColors.textSecondary,
+                                    ),
                               ),
                               const SizedBox(height: AppTheme.spaceLG),
                               ElevatedButton(
@@ -303,7 +387,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Text(l.grantAccess),
                               ),
                               TextButton(
-                                onPressed: () => openAppSettings(),
+                                onPressed: openAppSettings,
                                 child: Text(l.openSettings),
                               ),
                             ],
@@ -314,27 +398,38 @@ class _HomeScreenState extends State<HomeScreen> {
                         ? _buildScanProgressCard(context, fileService, l)
                         : (fileService.isLoading && summary == null)
                             ? _buildScanProgressCard(context, fileService, l)
-                            : totalCount == 0 && !fileService.isBackgroundScanning && !fileService.isLoading
+                            : totalCount == 0 &&
+                                    !fileService.isBackgroundScanning &&
+                                    !fileService.isLoading
                                 ? const EmptyState()
                                 : Card(
                                     child: Padding(
-                                      padding:
-                                          const EdgeInsets.all(AppTheme.spaceMD),
+                                      padding: const EdgeInsets.all(
+                                        AppTheme.spaceMD,
+                                      ),
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          if (fileService.isBackgroundScanning || fileService.isLoading)
+                                          if (fileService.isBackgroundScanning ||
+                                              fileService.isLoading)
                                             Padding(
                                               padding: const EdgeInsets.only(
-                                                  bottom: AppTheme.spaceSM),
+                                                bottom: AppTheme.spaceSM,
+                                              ),
                                               child: LinearProgressIndicator(
-                                                value: fileService.totalEstimatedAssets > 0
-                                                    ? fileService.scanProgress
-                                                    : null,
-                                                backgroundColor: Theme.of(context).dividerColor,
-                                                color: Theme.of(context).colorScheme.primary,
+                                                value:
+                                                    fileService.totalEstimatedAssets >
+                                                            0
+                                                        ? fileService.scanProgress
+                                                        : null,
+                                                backgroundColor:
+                                                    Theme.of(context)
+                                                        .dividerColor,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
                                                 minHeight: 3,
                                               ),
                                             ),
@@ -344,7 +439,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 .textTheme
                                                 .headlineSmall,
                                           ),
-                                          const SizedBox(height: AppTheme.spaceSM),
+                                          const SizedBox(
+                                            height: AppTheme.spaceSM,
+                                          ),
                                           Text(
                                             formatBytes(totalSize),
                                             style: Theme.of(context)
@@ -352,7 +449,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 .bodySmall,
                                           ),
                                           const Divider(
-                                              height: AppTheme.spaceLG),
+                                            height: AppTheme.spaceLG,
+                                          ),
                                           _SummaryRow(
                                             icon: Icons.photo_outlined,
                                             label: l.photos,
@@ -373,52 +471,31 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ),
               ),
-
-              // Action buttons — always visible
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: buttonsDisabled
-                      ? null
-                      : () async {
-                          final settings = context.read<SettingsProvider>();
-                          final fs = context.read<FileService>();
-                          final reviewProvider = context.read<ReviewProvider>();
-                          final navigator = Navigator.of(context);
-
-                          final result = await LookbackPicker.show(
-                            context,
-                            lastReviewTimestamp: settings.lastReviewTimestamp,
-                          );
-                          if (result == null || !mounted) return;
-
-                          setState(() => _isPreparingReview = true);
-
-                          try {
-                            await fs.requestPermissions();
-                            if (!mounted) return;
-
-                            await fs.scanForNewFiles(settings, since: result.since);
-                            if (!mounted) return;
-
-                            final scannedItems = fs.items;
-                            if (scannedItems.isEmpty) {
-                              setState(() => _isPreparingReview = false);
-                              return;
-                            }
-
-                            reviewProvider.startReview(scannedItems);
-                            setState(() => _isPreparingReview = false);
-                            navigator.pushNamed(EpuraApp.routeReview);
-                          } catch (_) {
-                            if (mounted) {
-                              setState(() => _isPreparingReview = false);
-                            }
-                          }
-                        },
+                  onPressed: buttonsDisabled ? null : _startReview,
                   child: Text(l.startReview),
                 ),
               ),
+              const SizedBox(height: AppTheme.spaceMD),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: buttonsDisabled ? null : _importDownloadedFiles,
+                  icon: const Icon(Icons.download_outlined),
+                  label: Text(l.addDownloadedFiles),
+                ),
+              ),
+              if (fileService.hasImportedDocuments) ...[
+                const SizedBox(height: AppTheme.spaceXS),
+                TextButton(
+                  onPressed: buttonsDisabled ? null : _clearImportedFiles,
+                  child: Text(
+                    l.clearImportedFiles(fileService.importedDocumentCount),
+                  ),
+                ),
+              ],
               const SizedBox(height: AppTheme.spaceMD),
               SizedBox(
                 width: double.infinity,
@@ -426,7 +503,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: buttonsDisabled
                       ? null
                       : () => Navigator.pushNamed(
-                          context, EpuraApp.routeStats),
+                            context,
+                            EpuraApp.routeStats,
+                          ),
                   child: Text(l.stats),
                 ),
               ),
@@ -455,7 +534,7 @@ class _SummaryRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceXS),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: Theme.of(context).extension<AppColorsExtension>()!.textSecondary),
+          Icon(icon, size: 20, color: context.appColors.textSecondary),
           const SizedBox(width: AppTheme.spaceSM),
           Text(label, style: Theme.of(context).textTheme.bodyMedium),
           const Spacer(),

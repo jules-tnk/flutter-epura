@@ -1,11 +1,11 @@
 # Epura
 
-A minimal Android app that reminds you to periodically review recently added photos, videos, and downloads. Decide whether to keep or delete each file via a swipe-card interface to prevent storage bloat from forgotten files.
+A minimal Android app that reminds you to periodically review recently added photos, videos, files from folders you explicitly select, and downloaded files you manually import. Decide whether to keep or delete each file via a swipe-card interface to prevent storage bloat from forgotten files.
 
 ## Features
 
 - **Swipe to decide** — swipe right to keep, left to delete, or skip for later
-- **Smart scanning** — scans photos, videos, and downloads filtered by a configurable lookback period
+- **Smart scanning** — scans photos and videos automatically, rescans custom folders you explicitly select, and lets you import downloaded files into the same review queue
 - **Daily reminders** — configurable notification time with option to disable
 - **Stats & streaks** — track total storage freed, weekly progress, and review streaks
 - **Bilingual** — English and French, follows device locale with manual override
@@ -107,7 +107,7 @@ Pushing a `v*` tag triggers the GitHub Actions workflow, which builds a release 
 ## Permissions
 
 - `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO` — access device gallery
-- `MANAGE_EXTERNAL_STORAGE` — scan Downloads folder
+- Storage Access Framework grants — scan only the folders and files you explicitly select through the Android system picker
 - `POST_NOTIFICATIONS` — daily reminder notifications
 - `SCHEDULE_EXACT_ALARM` — schedule notifications at specific times
 

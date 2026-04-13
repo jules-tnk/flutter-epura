@@ -152,7 +152,7 @@ class _StatsScreenState extends State<StatsScreen> {
                                           _dayLabel(value.toInt()),
                                           style: TextStyle(
                                             fontSize: 11,
-                                            color: Theme.of(context).extension<AppColorsExtension>()!.textTertiary,
+                                            color: context.appColors.textTertiary,
                                           ),
                                         ),
                                       );

@@ -48,3 +48,4 @@ app.*.map.json
 upload-keystore.jks
 android/key.properties
 repomix-output.xml
+.omx/
