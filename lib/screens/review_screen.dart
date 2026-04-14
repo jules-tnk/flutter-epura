@@ -24,6 +24,7 @@ class ReviewScreen extends StatefulWidget {
 }
 
 class _ReviewScreenState extends State<ReviewScreen> {
+  static const int _thumbnailPrefetchWindow = 10;
   final CardSwiperController _swiperController = CardSwiperController();
   bool _completing = false;
   double _completionProgress = 0.0;
@@ -33,10 +34,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final thumbCache = context.read<ThumbnailCache>();
-      final review = context.read<ReviewProvider>();
-      await thumbCache.prefetch(review.queue.skip(1).take(9).toList());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _prefetchThumbnailWindow();
     });
   }
 
@@ -107,6 +106,106 @@ class _ReviewScreenState extends State<ReviewScreen> {
     );
   }
 
+  void _prefetchThumbnailWindow() {
+    if (_completing) return;
+
+    final review = context.read<ReviewProvider>();
+    if (review.isComplete) return;
+
+    final items = review.queue
+        .skip(review.currentIndex)
+        .take(_thumbnailPrefetchWindow)
+        .toList();
+    if (items.isEmpty) return;
+
+    unawaited(context.read<ThumbnailCache>().prefetch(items));
+  }
+
+  bool _handleSwipe(ReviewProvider review, CardSwiperDirection direction) {
+    switch (direction) {
+      case CardSwiperDirection.left:
+        review.deleteCurrent();
+      case CardSwiperDirection.right:
+        review.keepCurrent();
+      default:
+        return true;
+    }
+
+    _prefetchThumbnailWindow();
+    return true;
+  }
+
+  void _handleSkip(ReviewProvider review) {
+    review.skipCurrent();
+    _prefetchThumbnailWindow();
+    if (!review.isComplete) {
+      _swiperController.swipe(CardSwiperDirection.top);
+    }
+  }
+
+  Widget _buildCompletionScreen(AppLocalizations l) {
+    if (_deletionsTotal == 0) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXL),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                l.cleaningUp,
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: AppTheme.spaceMD),
+              LinearProgressIndicator(
+                value: _completionProgress,
+                backgroundColor: Theme.of(context).dividerColor,
+                color: Theme.of(context).colorScheme.primary,
+                minHeight: 3,
+              ),
+              const SizedBox(height: AppTheme.spaceSM),
+              Text(
+                l.filesDeletedProgress(_deletionsDone, _deletionsTotal),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDeletionFailureBanner(
+    BuildContext context,
+    AppLocalizations l,
+    int failedDeletionCount,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppTheme.spaceMD,
+        AppTheme.spaceMD,
+        AppTheme.spaceMD,
+        0,
+      ),
+      child: Material(
+        color: Theme.of(context).colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.spaceSM),
+          child: Text(
+            l.filesCouldNotBeDeleted(failedDeletionCount),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onErrorContainer,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _promptLeaveReview() async {
     final choice = await _showLeaveDialog();
     await _handleLeaveChoice(choice);
@@ -166,38 +265,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
     }
 
     if (_completing || review.isComplete) {
-      if (_deletionsTotal > 0) {
-        return Scaffold(
-          body: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXL),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    l.cleaningUp,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: AppTheme.spaceMD),
-                  LinearProgressIndicator(
-                    value: _completionProgress,
-                    backgroundColor: Theme.of(context).dividerColor,
-                    color: Theme.of(context).colorScheme.primary,
-                    minHeight: 3,
-                  ),
-                  const SizedBox(height: AppTheme.spaceSM),
-                  Text(
-                    l.filesDeletedProgress(_deletionsDone, _deletionsTotal),
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }
-
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return _buildCompletionScreen(l);
     }
 
     return PopScope(
@@ -227,28 +295,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 minHeight: 3,
               ),
               if (review.lastFailedDeletionCount > 0)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppTheme.spaceMD,
-                    AppTheme.spaceMD,
-                    AppTheme.spaceMD,
-                    0,
-                  ),
-                  child: Material(
-                    color: Theme.of(context).colorScheme.errorContainer,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppTheme.spaceSM),
-                      child: Text(
-                        l.filesCouldNotBeDeleted(
-                          review.lastFailedDeletionCount,
-                        ),
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onErrorContainer,
-                        ),
-                      ),
-                    ),
-                  ),
+                _buildDeletionFailureBanner(
+                  context,
+                  l,
+                  review.lastFailedDeletionCount,
                 ),
               Expanded(
                 child: Padding(
@@ -265,14 +315,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
                           horizontal: true,
                           vertical: false,
                         ),
-                    onSwipe: (previousIndex, currentIndex, direction) {
-                      if (direction == CardSwiperDirection.left) {
-                        review.deleteCurrent();
-                      } else if (direction == CardSwiperDirection.right) {
-                        review.keepCurrent();
-                      }
-                      return true;
-                    },
+                    onSwipe: (previousIndex, currentIndex, direction) =>
+                        _handleSwipe(review, direction),
                     cardBuilder:
                         (context, index, percentThresholdX, percentThresholdY) {
                           if (index >= review.queue.length) {
@@ -297,12 +341,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
               Padding(
                 padding: const EdgeInsets.only(bottom: AppTheme.spaceMD),
                 child: TextButton(
-                  onPressed: () {
-                    review.skipCurrent();
-                    if (!review.isComplete) {
-                      _swiperController.swipe(CardSwiperDirection.top);
-                    }
-                  },
+                  onPressed: () => _handleSkip(review),
                   child: Text(l.skipForLater),
                 ),
               ),

@@ -347,7 +347,7 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('Epura'),
-            subtitle: Text(l.version('1.0.12')),
+            subtitle: Text(l.version('1.0.13')),
           ),
           const Divider(),
           Padding(

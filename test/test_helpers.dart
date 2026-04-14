@@ -169,7 +169,10 @@ Widget buildTestApp({
   required Widget home,
   required TestContext context,
   Map<String, WidgetBuilder> routes = const {},
+  ThumbnailCache? thumbnailCache,
 }) {
+  final cache = thumbnailCache ?? ThumbnailCache();
+
   return MultiProvider(
     providers: [
       ChangeNotifierProvider.value(value: context.settings),
@@ -179,7 +182,7 @@ Widget buildTestApp({
       Provider<DatabaseService>.value(value: context.database),
       Provider<NotificationService>.value(value: context.notifications),
       Provider<DocumentAccessService>.value(value: context.documents),
-      ChangeNotifierProvider(create: (_) => ThumbnailCache()),
+      ChangeNotifierProvider.value(value: cache),
     ],
     child: MaterialApp(
       theme: AppTheme.lightTheme,
