@@ -1,11 +1,11 @@
 {
-    "name": "epura",
-    "short_name": "epura",
+    "name": "Epura",
+    "short_name": "Epura",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#f6f8fb",
+    "theme_color": "#f6f8fb",
+    "description": "Epura helps you review and clean up recent photos, videos, selected folders, and imported downloads on Android.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

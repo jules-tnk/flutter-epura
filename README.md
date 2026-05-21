@@ -2,6 +2,10 @@
 
 A minimal Android app that reminds you to periodically review recently added photos, videos, files from folders you explicitly select, and downloaded files you manually import. Decide whether to keep or delete each file via a swipe-card interface to prevent storage bloat from forgotten files.
 
+## Install
+
+[![Get it on Google Play](https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png)](https://play.google.com/store/apps/details?id=com.epura.cleaner)
+
 ## Features
 
 - **Swipe to decide** — swipe right to keep, left to delete, or skip for later

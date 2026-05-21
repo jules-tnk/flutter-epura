@@ -1,46 +1,561 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
-  <base href="$FLUTTER_BASE_HREF">
-
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Epura is an Android cleaner that helps you review recent photos, videos, selected folders, and imported downloads before they pile up.">
+  <meta name="theme-color" content="#f6f8fb">
 
-  <!-- iOS meta tags & icons -->
+  <meta property="og:title" content="Epura">
+  <meta property="og:description" content="Review recent media and downloads before they become storage clutter.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="icons/Icon-512.png">
+
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="epura">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Epura">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
-
-  <title>epura</title>
+  <link rel="icon" type="image/png" href="favicon.png">
   <link rel="manifest" href="manifest.json">
+
+  <title>Epura | Storage cleanup for Android</title>
+
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #151922;
+      --muted: #5f6673;
+      --line: #dfe5ee;
+      --surface: #f6f8fb;
+      --white: #ffffff;
+      --blue: #2f8ee8;
+      --blue-dark: #1559d2;
+      --green: #20b26b;
+      --shadow: 0 28px 70px rgba(21, 25, 34, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--surface);
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .page {
+      overflow: hidden;
+    }
+
+    .hero {
+      min-height: 100svh;
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(320px, 0.7fr);
+      align-items: center;
+      gap: clamp(36px, 7vw, 108px);
+      padding: clamp(24px, 5vw, 72px);
+      background:
+        linear-gradient(115deg, rgba(255, 255, 255, 0.96) 0%, rgba(246, 248, 251, 0.94) 48%, rgba(229, 242, 255, 0.86) 100%),
+        radial-gradient(circle at 82% 20%, rgba(47, 142, 232, 0.28), transparent 34%);
+    }
+
+    .brand-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: clamp(40px, 8vw, 96px);
+      font-size: 18px;
+      letter-spacing: 0.28em;
+      text-transform: lowercase;
+    }
+
+    .brand-mark img {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+    }
+
+    .hero-copy {
+      max-width: 680px;
+      animation: rise 720ms ease both;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 680px;
+      font-size: clamp(54px, 9vw, 126px);
+      line-height: 0.92;
+      letter-spacing: 0;
+    }
+
+    .hero-copy p {
+      max-width: 570px;
+      margin: 28px 0 30px;
+      color: var(--muted);
+      font-size: clamp(18px, 2vw, 23px);
+      line-height: 1.5;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .play-store-link {
+      display: inline-block;
+      line-height: 0;
+      transition: transform 180ms ease, filter 180ms ease;
+    }
+
+    .play-store-link:hover,
+    .play-store-link:focus-visible {
+      transform: translateY(-2px);
+      filter: drop-shadow(0 12px 18px rgba(21, 25, 34, 0.16));
+      outline: none;
+    }
+
+    .play-store-badge {
+      width: 224px;
+      max-width: 100%;
+      height: auto;
+    }
+
+    .privacy-note {
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .phone-stack {
+      position: relative;
+      min-height: min(760px, 82svh);
+      animation: settle 760ms 120ms ease both;
+    }
+
+    .screenshot {
+      position: absolute;
+      width: min(330px, 42vw);
+      max-width: 78%;
+      border-radius: 34px;
+      box-shadow: var(--shadow);
+      background: var(--white);
+      transition: transform 240ms ease, box-shadow 240ms ease;
+    }
+
+    .screenshot:hover {
+      transform: translateY(-8px) rotate(0deg);
+      box-shadow: 0 34px 84px rgba(21, 25, 34, 0.2);
+    }
+
+    .screenshot.primary {
+      right: 8%;
+      top: 0;
+      z-index: 2;
+      transform: rotate(1.5deg);
+    }
+
+    .screenshot.secondary {
+      left: 2%;
+      bottom: 0;
+      z-index: 1;
+      transform: rotate(-4deg) scale(0.86);
+      opacity: 0.9;
+    }
+
+    .section {
+      padding: clamp(72px, 10vw, 138px) clamp(24px, 5vw, 72px);
+      animation: fade-in linear both;
+      animation-timeline: view();
+      animation-range: entry 12% cover 32%;
+    }
+
+    .section-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      margin: 0 0 18px;
+      color: var(--blue-dark);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin: 0;
+      max-width: 820px;
+      font-size: clamp(34px, 5vw, 72px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .feature-line {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      margin-top: 54px;
+      background: var(--line);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .feature {
+      min-height: 260px;
+      padding: clamp(28px, 4vw, 44px);
+      background: var(--surface);
+    }
+
+    .feature strong {
+      display: block;
+      margin-bottom: 18px;
+      font-size: 24px;
+    }
+
+    .feature p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.55;
+    }
+
+    .workflow {
+      background: var(--ink);
+      color: var(--white);
+    }
+
+    .workflow .section-inner {
+      display: grid;
+      grid-template-columns: minmax(0, 0.78fr) minmax(280px, 0.62fr);
+      gap: clamp(42px, 8vw, 96px);
+      align-items: center;
+    }
+
+    .workflow .eyebrow {
+      color: #89c9ff;
+    }
+
+    .workflow p {
+      color: #c8d2df;
+      font-size: 20px;
+      line-height: 1.55;
+    }
+
+    .steps {
+      display: grid;
+      gap: 24px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: step;
+    }
+
+    .steps li {
+      position: relative;
+      padding-left: 54px;
+      color: #d8e0ea;
+      font-size: 19px;
+      line-height: 1.45;
+      counter-increment: step;
+    }
+
+    .steps li::before {
+      content: counter(step, decimal-leading-zero);
+      position: absolute;
+      left: 0;
+      top: 2px;
+      color: #89c9ff;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+    }
+
+    .final {
+      background: var(--white);
+      color: var(--ink);
+      text-align: center;
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+
+    .final h2,
+    .final p {
+      margin-right: auto;
+      margin-left: auto;
+    }
+
+    .final .eyebrow {
+      color: var(--blue-dark);
+    }
+
+    .final h2 {
+      color: var(--ink);
+    }
+
+    .final p {
+      max-width: 580px;
+      color: #3f4754;
+      font-size: 20px;
+      line-height: 1.55;
+    }
+
+    .site-footer {
+      padding: 34px clamp(24px, 5vw, 72px);
+      background: var(--white);
+      border-top: 1px solid var(--line);
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      max-width: 1120px;
+      margin: 0 auto;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .legal-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+    }
+
+    .footer-inner a,
+    .legal-links a {
+      text-decoration: none;
+      transition: color 160ms ease;
+    }
+
+    .footer-inner a:hover,
+    .footer-inner a:focus-visible,
+    .legal-links a:hover,
+    .legal-links a:focus-visible {
+      color: var(--blue-dark);
+      outline: none;
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes settle {
+      from {
+        opacity: 0;
+        transform: translateY(34px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      .workflow .section-inner,
+      .feature-line {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        min-height: auto;
+        padding-top: 28px;
+      }
+
+      .brand-mark {
+        margin-bottom: 44px;
+      }
+
+      .phone-stack {
+        min-height: 600px;
+      }
+
+      .screenshot {
+        width: min(310px, 72vw);
+      }
+
+      .screenshot.primary {
+        right: 0;
+      }
+
+      .screenshot.secondary {
+        left: 0;
+      }
+
+      .feature-line {
+        background: transparent;
+        border-bottom: 0;
+      }
+
+      .feature {
+        min-height: 0;
+        border-bottom: 1px solid var(--line);
+      }
+    }
+
+    @media (max-width: 520px) {
+      .hero,
+      .section {
+        padding-right: 20px;
+        padding-left: 20px;
+      }
+
+      h1 {
+        font-size: clamp(48px, 17vw, 72px);
+      }
+
+      .actions {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .phone-stack {
+        min-height: 520px;
+      }
+
+      .screenshot {
+        border-radius: 24px;
+      }
+
+      .footer-inner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+  <main class="page">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="brand-mark">
+          <img src="icons/Icon-192.png" alt="">
+          <span>epura</span>
+        </div>
+        <h1 id="hero-title">Clean up the files you forgot about.</h1>
+        <p>Epura turns recent photos, videos, selected folders, and imported downloads into a quick swipe review before clutter becomes permanent.</p>
+        <div class="actions">
+          <a class="play-store-link" href="https://play.google.com/store/apps/details?id=com.epura.cleaner" target="_blank" rel="noopener noreferrer" aria-label="Get Epura on Google Play">
+            <img
+              class="play-store-badge"
+              src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+              alt="Get it on Google Play"
+            >
+          </a>
+          <span class="privacy-note">No accounts. No analytics. Files stay on your phone.</span>
+        </div>
+      </div>
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
-  <script src="flutter_bootstrap.js" async></script>
+      <div class="phone-stack" aria-label="Epura app screenshots">
+        <img class="screenshot primary" src="screenshots/home.png" alt="Epura home screen showing files ready for review">
+        <img class="screenshot secondary" src="screenshots/settings.png" alt="Epura settings screen for reminders, language, and file types">
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="why-title">
+      <div class="section-inner">
+        <p class="eyebrow">Built for intentional cleanup</p>
+        <h2 id="why-title">A cleaner that asks before it deletes.</h2>
+        <div class="feature-line">
+          <div class="feature">
+            <strong>Swipe decisions</strong>
+            <p>Keep, delete, or skip each file in a focused review flow instead of digging through storage menus.</p>
+          </div>
+          <div class="feature">
+            <strong>Recent-file focus</strong>
+            <p>Choose a lookback window and review what was added recently, when it is still easy to recognize.</p>
+          </div>
+          <div class="feature">
+            <strong>Selected folders</strong>
+            <p>Add custom folders and downloads through Android pickers so Epura only scans what you allow.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section workflow" aria-labelledby="workflow-title">
+      <div class="section-inner">
+        <div>
+          <p class="eyebrow">How it works</p>
+          <h2 id="workflow-title">One small review before storage gets noisy.</h2>
+          <p>Epura is designed for the files that pile up quietly: screenshots, camera roll leftovers, clips, saved documents, and downloads.</p>
+        </div>
+        <ol class="steps">
+          <li>Pick how far back Epura should look.</li>
+          <li>Review each item with a keep, delete, or skip decision.</li>
+          <li>Use reminders and stats to keep the habit light.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section final" aria-labelledby="final-title">
+      <div class="section-inner">
+        <p class="eyebrow">Available on Android</p>
+        <h2 id="final-title">Start with the files waiting today.</h2>
+        <p>Install Epura from Google Play and run your first review in minutes.</p>
+        <a class="play-store-link" href="https://play.google.com/store/apps/details?id=com.epura.cleaner" target="_blank" rel="noopener noreferrer" aria-label="Get Epura on Google Play">
+          <img
+            class="play-store-badge"
+            src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+            alt="Get it on Google Play"
+          >
+        </a>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <span>Built by <a href="https://github.com/jules-tnk" target="_blank" rel="noopener noreferrer">jules-tnk</a>. Epura keeps cleanup local to your device.</span>
+        <nav class="legal-links" aria-label="Legal links">
+          <a href="../privacy-policy/">Privacy Policy</a>
+          <a href="../terms-of-service/">Terms of Service</a>
+        </nav>
+      </div>
+    </footer>
+  </main>
 </body>
 </html>
