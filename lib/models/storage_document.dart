@@ -14,12 +14,12 @@ class StorageDocument {
   });
 
   Map<String, Object?> toJson() => {
-        'uri': uri,
-        'name': name,
-        'size': size,
-        'modifiedAt': modifiedAt.millisecondsSinceEpoch,
-        'mimeType': mimeType,
-      };
+    'uri': uri,
+    'name': name,
+    'size': size,
+    'modifiedAt': modifiedAt.millisecondsSinceEpoch,
+    'mimeType': mimeType,
+  };
 
   factory StorageDocument.fromJson(Map<String, dynamic> json) {
     return StorageDocument(

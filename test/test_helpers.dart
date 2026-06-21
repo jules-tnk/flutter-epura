@@ -5,7 +5,13 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:epura/models/duplicate_group.dart';
+import 'package:epura/models/burst_group.dart';
 import 'package:epura/l10n/app_localizations.dart';
+import 'package:epura/models/indexed_file.dart';
+import 'package:epura/models/review_decision.dart';
+import 'package:epura/models/review_group_dismissal.dart';
+import 'package:epura/models/review_item.dart';
 import 'package:epura/models/review_session.dart';
 import 'package:epura/models/scan_folder_grant.dart';
 import 'package:epura/models/storage_document.dart';
@@ -15,6 +21,9 @@ import 'package:epura/providers/settings_provider.dart';
 import 'package:epura/providers/stats_provider.dart';
 import 'package:epura/services/database_service.dart';
 import 'package:epura/services/document_access_service.dart';
+import 'package:epura/services/duplicate_candidate_service.dart';
+import 'package:epura/services/burst_candidate_service.dart';
+import 'package:epura/services/media_library_deletion_service.dart';
 import 'package:epura/services/notification_service.dart';
 import 'package:epura/services/thumbnail_cache.dart';
 import 'package:epura/theme/app_theme.dart';
@@ -33,13 +42,50 @@ class FakeNotificationService extends NotificationService {
   Future<DateTime> scheduleReminder(
     TimeOfDay time,
     String interval,
-    int dayOfWeek,
-  ) async {
+    int dayOfWeek, {
+    String? localeCode,
+  }) async {
     return DateTime(2030, 1, 1, time.hour, time.minute);
   }
 
   @override
   Future<void> cancelReminder() async {}
+}
+
+class FakeDuplicateCandidateService extends DuplicateCandidateService {
+  final List<DuplicateGroup> groups;
+
+  const FakeDuplicateCandidateService(this.groups);
+
+  @override
+  Future<List<DuplicateGroup>> findExactPhotoGroups(
+    List<ReviewItem> items,
+  ) async {
+    return groups;
+  }
+}
+
+class FakeBurstCandidateService extends BurstCandidateService {
+  final List<BurstGroup> groups;
+
+  const FakeBurstCandidateService(this.groups);
+
+  @override
+  List<BurstGroup> findPhotoBurstGroups(List<ReviewItem> items) {
+    return groups;
+  }
+}
+
+ReviewItem testPhotoReviewItem(String id, String name) {
+  return ReviewItem(
+    id: id,
+    name: name,
+    path: 'C:/tmp/$name',
+    size: 2048,
+    type: FileItemType.photo,
+    date: DateTime(2026, 5, 31),
+    source: ReviewItemSource.mediaLibrary,
+  );
 }
 
 class FakeDocumentAccessService implements DocumentAccessService {
@@ -85,6 +131,12 @@ class FakeDocumentAccessService implements DocumentAccessService {
 
 class FakeDatabaseService extends DatabaseService {
   final List<ReviewSession> insertedSessions = [];
+  final Map<String, ReviewDecision> decisionsByKey = {};
+  final Map<String, IndexedFile> indexedFilesByKey = {};
+  final Map<String, ReviewGroupDismissal> reviewGroupDismissalsByKey = {};
+  int reviewStreak = 0;
+  bool throwOnIndexUpsert = false;
+  bool throwOnDecisionLookup = false;
 
   @override
   Future<void> init() async {}
@@ -98,6 +150,116 @@ class FakeDatabaseService extends DatabaseService {
   @override
   Future<List<ReviewSession>> getSessions({int limit = 50}) async {
     return insertedSessions.take(limit).toList();
+  }
+
+  @override
+  Future<int> clearReviewSessions() async {
+    final count = insertedSessions.length;
+    insertedSessions.clear();
+    return count;
+  }
+
+  @override
+  Future<void> upsertReviewDecisions(List<ReviewDecision> decisions) async {
+    for (final decision in decisions) {
+      decisionsByKey[decision.fileKey] = decision;
+    }
+  }
+
+  @override
+  Future<void> clearReviewDecisionsForKeys(Iterable<String> fileKeys) async {
+    for (final key in fileKeys) {
+      decisionsByKey.remove(key);
+    }
+  }
+
+  @override
+  Future<List<ReviewDecision>> getReviewDecisions() async {
+    return decisionsByKey.values.toList()
+      ..sort((a, b) => b.decidedAt.compareTo(a.decidedAt));
+  }
+
+  @override
+  Future<Map<String, ReviewDecision>> getReviewDecisionsForKeys(
+    Iterable<String> fileKeys,
+  ) async {
+    if (throwOnDecisionLookup) {
+      throw StateError('decision lookup failed');
+    }
+
+    final result = <String, ReviewDecision>{};
+    for (final key in fileKeys) {
+      final decision = decisionsByKey[key];
+      if (decision != null) result[key] = decision;
+    }
+    return result;
+  }
+
+  @override
+  Future<int> clearReviewDecisions() async {
+    final count = decisionsByKey.length;
+    decisionsByKey.clear();
+    return count;
+  }
+
+  @override
+  Future<void> upsertIndexedFiles(List<IndexedFile> files) async {
+    if (throwOnIndexUpsert) {
+      throw StateError('index write failed');
+    }
+
+    for (final file in files) {
+      indexedFilesByKey[file.fileKey] = file;
+    }
+  }
+
+  @override
+  Future<List<IndexedFile>> getIndexedFilesForFolder(String folderUri) async {
+    return indexedFilesByKey.values
+        .where((file) => file.folderUri == folderUri)
+        .toList()
+      ..sort((a, b) => b.modifiedAt.compareTo(a.modifiedAt));
+  }
+
+  @override
+  Future<int> clearFileIndexForFolder(String folderUri) async {
+    final keys = indexedFilesByKey.entries
+        .where((entry) => entry.value.folderUri == folderUri)
+        .map((entry) => entry.key)
+        .toList();
+    for (final key in keys) {
+      indexedFilesByKey.remove(key);
+    }
+    return keys.length;
+  }
+
+  @override
+  Future<int> clearFileIndex() async {
+    final count = indexedFilesByKey.length;
+    indexedFilesByKey.clear();
+    return count;
+  }
+
+  @override
+  Future<void> upsertReviewGroupDismissal(
+    ReviewGroupDismissal dismissal,
+  ) async {
+    reviewGroupDismissalsByKey[dismissal.groupKey] = dismissal;
+  }
+
+  @override
+  Future<Set<String>> getDismissedReviewGroupKeys(String mode) async {
+    return reviewGroupDismissalsByKey.values
+        .where((dismissal) => dismissal.mode == mode)
+        .map((dismissal) => dismissal.groupKey)
+        .toSet();
+  }
+
+  @override
+  Future<int> clearReviewGroupDismissals() async {
+    final count = reviewGroupDismissalsByKey.length;
+    reviewGroupDismissalsByKey.clear();
+    return count;
   }
 
   @override
@@ -120,7 +282,7 @@ class FakeDatabaseService extends DatabaseService {
   }
 
   @override
-  Future<int> getStreak() async => 0;
+  Future<int> getStreak() async => reviewStreak;
 }
 
 class TestContext {
@@ -143,15 +305,27 @@ class TestContext {
 
 Future<TestContext> createTestContext({
   Map<String, Object> prefs = const {},
+  DuplicateCandidateService duplicateCandidateService =
+      const DuplicateCandidateService(),
+  BurstCandidateService burstCandidateService = const BurstCandidateService(),
+  MediaLibraryDeletionService mediaLibraryDeletionService =
+      const PhotoManagerMediaLibraryDeletionService(),
 }) async {
   SharedPreferences.setMockInitialValues(prefs);
   final notifications = FakeNotificationService();
   final documents = FakeDocumentAccessService();
   final settings = SettingsProvider(notifications, documents);
   await settings.init();
-  final fileService = FileService(documents);
+  final fileService = FileService(
+    documents,
+    duplicateCandidateService: duplicateCandidateService,
+    burstCandidateService: burstCandidateService,
+  );
   await fileService.init();
-  final reviewProvider = ReviewProvider(documents);
+  final reviewProvider = ReviewProvider(
+    documents,
+    mediaLibraryDeletionService: mediaLibraryDeletionService,
+  );
   final database = FakeDatabaseService();
   await database.init();
 

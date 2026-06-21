@@ -1,0 +1,35 @@
+flowchart TD
+    flutter["Flutter / Dart"]
+    material["Material UI"]
+    provider["Provider"]
+    drift["Drift"]
+    sqlite["Local SQLite via drift_sqflite"]
+    prefs["SharedPreferences"]
+    photoManager["photo_manager"]
+    methodChannel["Kotlin MethodChannels"]
+    notifications["flutter_local_notifications"]
+    l10n["Flutter l10n / ARB"]
+    charts["fl_chart"]
+    swiper["flutter_card_swiper"]
+    tests["flutter_test"]
+    buildRunner["build_runner / drift_dev"]
+    android["Android SDK"]
+    play["Google Play release"]
+
+    flutter --> material
+    flutter --> provider
+    flutter --> drift
+    drift --> sqlite
+    flutter --> prefs
+    flutter --> photoManager
+    flutter --> methodChannel
+    flutter --> notifications
+    flutter --> l10n
+    flutter --> charts
+    flutter --> swiper
+    flutter --> tests
+    flutter --> buildRunner
+    methodChannel --> android
+    photoManager --> android
+    notifications --> android
+    android --> play

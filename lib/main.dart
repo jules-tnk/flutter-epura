@@ -20,10 +20,16 @@ void main() async {
   final fileService = FileService(documentAccessService);
 
   // Init DB, notifications, and file service cache in parallel
-  await Future.wait([dbService.init(), notificationService.init(), fileService.init()]);
+  await Future.wait([
+    dbService.init(),
+    notificationService.init(),
+    fileService.init(),
+  ]);
 
-  final settingsProvider =
-      SettingsProvider(notificationService, documentAccessService);
+  final settingsProvider = SettingsProvider(
+    notificationService,
+    documentAccessService,
+  );
   await settingsProvider.init();
 
   runApp(

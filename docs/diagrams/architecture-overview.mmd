@@ -1,0 +1,37 @@
+flowchart LR
+    user["User"]
+    ui["Flutter screens and widgets"]
+    providers["Providers"]
+    services["Dart services"]
+    drift["Drift local SQLite"]
+    prefs["SharedPreferences"]
+    plugins["Flutter plugins"]
+    channel["MethodChannel services"]
+    android["Android system APIs"]
+
+    user --> ui
+    ui --> providers
+    providers --> services
+    services --> drift
+    services --> prefs
+    services --> plugins
+    services --> channel
+    plugins --> android
+    channel --> android
+
+    subgraph App["Flutter app"]
+        ui
+        providers
+        services
+    end
+
+    subgraph LocalStorage["Local storage"]
+        drift
+        prefs
+    end
+
+    subgraph Platform["Android boundary"]
+        plugins
+        channel
+        android
+    end

@@ -1,7 +1,23 @@
 {
   "@@locale": "en",
 
-  "appTitle": "epura",
+  "appTitle": "Epura",
+  "home": "Home",
+  "review": "Review",
+  "localOnlyBadge": "Local only",
+  "takeControlOfSpace": "Take control of your space",
+  "allTime": "All time",
+  "thisMonth": "This month",
+  "thisSession": "This session",
+  "daysInARow": "days in a row",
+  "readyToReview": "Ready to review",
+  "reviewModesAvailable": "{count, plural, =1{1 review mode available} other{{count} review modes available}}",
+  "@reviewModesAvailable": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "resumeReview": "Resume review",
 
   "notificationTitle": "Time to clean up!",
   "notificationBody": "You have new files to review",
@@ -23,17 +39,127 @@
   "downloads": "Downloads",
   "startReview": "Start Review",
   "stats": "Stats",
-
+  "reviewModes": "Review modes",
+  "reviewModeRecent": "Recent",
+  "reviewModeLargestFiles": "Largest",
+  "reviewModeScreenshots": "Screenshots",
+  "reviewModeLargeVideos": "Large videos",
+  "reviewModeBursts": "Bursts",
+  "reviewModeDownloads": "Downloads",
+  "reviewModeSelectedFolders": "Selected folders",
+  "reviewModeFolder": "Folder: {name}",
+  "@reviewModeFolder": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "reviewModeDuplicates": "Duplicates",
+  "reviewModeSkipped": "Skipped",
+  "reviewModeMore": "More modes",
+  "reviewModeSheetTitle": "Choose review mode",
+  "noFilesForMode": "No files found for this review mode.",
+  "exactDuplicateGroups": "Exact duplicate groups",
+  "exactCopies": "{count} exact copies",
+  "@exactCopies": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "recoverableStorage": "{size} recoverable",
+  "@recoverableStorage": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "reviewGroup": "Review group",
+  "reviewGroupCount": "{count, plural, =1{1 group} other{{count} groups}}",
+  "@reviewGroupCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "compareGroup": "Compare group",
+  "comparePhotos": "Compare photos",
+  "compareShots": "Compare shots",
+  "groupComparePosition": "{index} of {count}",
+  "@groupComparePosition": {
+    "placeholders": {
+      "index": { "type": "int" },
+      "count": { "type": "int" }
+    }
+  },
+  "dismissGroup": "Dismiss group",
+  "groupDismissed": "Group dismissed.",
+  "noDuplicateGroups": "No exact duplicate groups found.",
+  "photoBursts": "Photo bursts",
+  "burstShots": "{count} shots",
+  "@burstShots": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "burstSpan": "{seconds}s span",
+  "@burstSpan": {
+    "placeholders": {
+      "seconds": { "type": "int" }
+    }
+  },
+  "burstTotalStorage": "{size} total",
+  "@burstTotalStorage": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "groupTotalStorage": "{size} total",
+  "@groupTotalStorage": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "reviewBurst": "Review burst",
+  "noBurstGroups": "No photo bursts found.",
   "leaveReview": "Leave review?",
   "leaveReviewMessage": "You can save your progress or discard all changes.",
   "cancel": "Cancel",
+  "save": "Save",
   "saveAndExit": "Save & Exit",
   "discardAndExit": "Discard & Exit",
   "skipForLater": "Skip for later",
+  "neverAskAgain": "Never ask again",
+  "reviewProgress": "{current}/{total}",
+  "@reviewProgress": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "filesMarkedForDeletion": "Delete {count}",
+  "@filesMarkedForDeletion": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
 
   "photo": "Photo",
   "video": "Video",
   "download": "Download",
+  "openPreview": "Open preview",
+  "duplicateCandidate": "Duplicate {index} of {count}",
+  "@duplicateCandidate": {
+    "placeholders": {
+      "index": { "type": "int" },
+      "count": { "type": "int" }
+    }
+  },
+  "duplicateCandidateHelp": "Same content fingerprint and size. Review each copy; Epura will not delete automatically.",
+  "burstCandidate": "Burst {index} of {count}",
+  "@burstCandidate": {
+    "placeholders": {
+      "index": { "type": "int" },
+      "count": { "type": "int" }
+    }
+  },
+  "burstCandidateHelp": "Taken close together. Review each shot; Epura will not choose a best photo automatically.",
   "delete": "Delete",
   "keep": "Keep",
 
@@ -43,6 +169,10 @@
   "skipped": "Skipped",
   "storageFreed": "Storage freed",
   "motivationalMessage": "Great job keeping your device clean!",
+  "reviewPromptTitle": "Enjoying Epura?",
+  "reviewPromptBody": "A Play Store rating helps more people find a private cleanup app. Epura will only ask after successful sessions.",
+  "rateEpura": "Rate Epura",
+  "notNow": "Not now",
   "viewStats": "View Stats",
   "goHome": "Go Home",
 
@@ -71,13 +201,49 @@
   },
   "filesReviewed": "Files reviewed",
   "totalReviewed": "Total reviewed",
+  "sessions": "Sessions",
   "sessionHistory": "Session history",
+  "recentSessions": "Recent sessions",
   "filesReviewedCount": "{count} files reviewed",
   "@filesReviewedCount": {
     "placeholders": {
       "count": { "type": "int" }
     }
   },
+  "monthlyReviewProgress": "This month's review progress",
+  "storageFreedThisMonth": "Storage freed this month",
+  "storageInsightTitle": "Storage insight",
+  "storageInsightStatsEntryBody": "See what Epura can review and what Android manages.",
+  "storageInsightEpuraCanReview": "Epura can review",
+  "storageInsightEpuraCanReviewBody": "This is only storage from your scan choices: photos, videos, selected folders, and files you import.",
+  "storageInsightFilesAvailable": "{count} files in scope",
+  "@storageInsightFilesAvailable": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "storageInsightAlreadyFreed": "Already freed",
+  "storageInsightPhotosVideos": "Photos and videos",
+  "storageInsightGuideTitle": "What is taking space?",
+  "storageInsightPhotosVideosBody": "Media usually grows fastest. Epura can help you review the photos and videos Android allows it to see.",
+  "storageInsightDownloadsBody": "Imported downloads and selected folders stay local and are only reviewed after you choose them.",
+  "storageInsightAppCache": "App cache",
+  "storageInsightAppCacheBody": "Android manages other apps' caches. Epura does not clear them or inspect your installed apps.",
+  "storageInsightCloudCopies": "Cloud copies",
+  "storageInsightCloudCopiesBody": "A file can look backed up while still using device storage. Check the original app before deleting anything important.",
+  "storageInsightSystemStorage": "System storage",
+  "storageInsightSystemStorageBody": "System files and hidden app data belong in Android settings, not in Epura's review deck.",
+  "storageInsightPlanTitle": "Cleanup plan",
+  "storageInsightPlan2MinuteTitle": "2-minute cleanup",
+  "storageInsightPlan2MinuteBody": "Review recent screenshots and obvious one-off images.",
+  "storageInsightPlan5MinuteTitle": "5-minute cleanup",
+  "storageInsightPlan5MinuteBody": "Review large videos and exact duplicate groups first.",
+  "storageInsightPlanWeeklyTitle": "Weekly cleanup",
+  "storageInsightPlanWeeklyBody": "Review new files since your last session before the queue grows.",
+  "storageInsightPlanMonthlyTitle": "Monthly cleanup",
+  "storageInsightPlanMonthlyBody": "Import downloaded files or rescan selected folders you no longer trust.",
+  "openAndroidStorageSettings": "Open Android storage settings",
+  "androidStorageSettingsUnavailable": "Android storage settings are not available on this device.",
 
   "allClean": "All clean!",
   "noFilesToReview": "No files to review right now. Check back later.",
@@ -125,8 +291,8 @@
   "scanningPhotosAndVideos": "Scanning photos & videos...",
   "scanningCustomFolders": "Scanning selected folders...",
   "cleaningUp": "Cleaning up...",
-  "filesDeletedProgress": "{done} / {total} files deleted",
-  "@filesDeletedProgress": {
+  "filesRemovalProgress": "{done} / {total} files processed",
+  "@filesRemovalProgress": {
     "placeholders": {
       "done": { "type": "int" },
       "total": { "type": "int" }
@@ -136,13 +302,40 @@
   "startingReview": "Starting review...",
   "scanning": "Scanning...",
   "addDownloadedFiles": "Add downloaded files",
+  "downloadsInboxTitle": "Downloads inbox",
+  "downloadsInboxSummary": "{count, plural, =1{1 file imported - {size}} other{{count} files imported - {size}}}",
+  "@downloadsInboxSummary": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "size": { "type": "String" }
+    }
+  },
+  "downloadsInboxBody": "Android asks you to choose downloads manually. Epura only reviews files you picked.",
+  "reviewDownloads": "Review downloads",
+  "filterDownloads": "Filter",
+  "downloadFilterTitle": "Review downloads by type",
+  "downloadFilterAll": "All downloads",
+  "downloadFilterPdfs": "PDFs",
+  "downloadFilterArchives": "Archives",
+  "downloadFilterApks": "APKs",
+  "downloadFilterAudio": "Audio",
+  "downloadFilterDocuments": "Documents",
+  "downloadFilterOther": "Other",
+  "downloadFilterOption": "{label} ({count})",
+  "@downloadFilterOption": {
+    "placeholders": {
+      "label": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+  "addMoreDownloads": "Add more",
   "clearImportedFiles": "Clear imported files ({count})",
   "@clearImportedFiles": {
     "placeholders": {
       "count": { "type": "int" }
     }
   },
-  "importedFilesAdded": "{count} files added to your review queue.",
+  "importedFilesAdded": "{count, plural, =1{1 file added to your review queue.} other{{count} files added to your review queue.}}",
   "@importedFilesAdded": {
     "placeholders": {
       "count": { "type": "int" }
@@ -152,6 +345,14 @@
   "customFoldersToScan": "Custom folders to scan",
   "addCustomFolder": "Add folder",
   "customFoldersHelp": "Choose folders you want Epura to rescan automatically. Access is limited to folders you explicitly select.",
+  "renameFolder": "Rename folder",
+  "folderNickname": "Folder nickname",
+  "folderLastReviewed": "Last reviewed {date}",
+  "@folderLastReviewed": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
   "noCustomFolders": "No custom folders selected. By default, Epura only scans photos and videos.",
   "folderAdded": "{name} added to folder scans.",
   "@folderAdded": {
@@ -172,6 +373,19 @@
       "count": { "type": "int" }
     }
   },
+  "filesMovedToTrash": "{count, plural, =1{1 file moved to Android Trash. You may be able to restore it from your gallery until Android removes trash.} other{{count} files moved to Android Trash. You may be able to restore them from your gallery until Android removes trash.}}",
+  "@filesMovedToTrash": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "filesPermanentlyDeleted": "{count, plural, =1{1 file was permanently deleted.} other{{count} files were permanently deleted.}}",
+  "@filesPermanentlyDeleted": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "trashStorageFreedNote": "Storage freed only counts permanently deleted files. Trashed media may still use storage until the trash is emptied.",
 
   "appearance": "Appearance",
   "light": "Light",
@@ -181,6 +395,46 @@
   "privacyPolicy": "Privacy Policy",
   "termsOfService": "Terms of Service",
   "viewOnline": "View online",
+  "privacyAndControl": "Privacy and control",
+  "privacyPermissions": "Privacy and permissions",
+  "privacyPermissionsSubtitle": "See what Epura can access and clear local history.",
+  "privacyReceipt": "Privacy receipt",
+  "noAccount": "No account",
+  "noCloudSync": "No cloud sync",
+  "noAnalyticsTracking": "No analytics or tracking",
+  "localOnlyProcessing": "All processing stays on this device",
+  "permissionsEpuraUses": "Permissions Epura uses",
+  "mediaPermissionTitle": "Photos and videos",
+  "mediaPermissionBody": "Used only to show selected media in your review deck.",
+  "selectedFoldersPermissionTitle": "Selected folders and files",
+  "selectedFoldersPermissionBody": "Used only for folders or downloaded files you choose through the Android picker.",
+  "notificationsPermissionTitle": "Notifications",
+  "notificationsPermissionBody": "Used only for reminders you turn on.",
+  "currentLocalAccess": "Current local access",
+  "selectedFolders": "Selected folders",
+  "noneSelected": "None selected",
+  "selectedFolderCount": "{count} selected",
+  "@selectedFolderCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "enabled": "Enabled",
+  "disabled": "Disabled",
+  "localHistory": "Local history",
+  "noLocalReviewHistory": "No local review history",
+  "localReviewSessionCount": "{count, plural, =1{1 local review session} other{{count} local review sessions}}",
+  "@localReviewSessionCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "clearHistoryExplanation": "This clears Epura's review stats, last-review marker, skipped-file queue, never-ask-again decisions, dismissed group suggestions, and local file index. It does not delete files, revoke selected folders, or change your scan settings.",
+  "clearEpuraHistory": "Clear Epura history",
+  "clearHistoryTitle": "Clear local history?",
+  "clearHistoryMessage": "Epura will clear review sessions, stats, the last-review marker, skipped-file queue, never-ask-again decisions, dismissed group suggestions, and local file index. Your files and selected folders will stay unchanged.",
+  "clearHistoryConfirm": "Clear history",
+  "historyClearedMessage": "Epura history cleared. Your files were not changed.",
 
   "welcomeToEpura": "Welcome to Epura",
   "termsBottomSheetSummary": "Epura works entirely on your device. No data is collected, transmitted, or shared. By continuing, you agree to our Privacy Policy and Terms of Service.",

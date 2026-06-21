@@ -1,0 +1,44 @@
+erDiagram
+    REVIEW_SESSIONS {
+        int id PK
+        text date
+        int keptCount
+        int deletedCount
+        int skippedCount
+        int bytesFreed
+    }
+
+    REVIEW_DECISIONS {
+        text fileKey PK
+        text decision
+        text decidedAt
+    }
+
+    FILE_INDEX {
+        text fileKey PK
+        text source
+        text fileType
+        int size
+        text modifiedAt
+        text indexedAt
+        text folderUri
+        text mimeType
+    }
+
+    MEDIA_FINGERPRINTS {
+        text fileKey PK
+        text hashType
+        text hashValue
+        int size
+        text modifiedAt
+        text indexedAt
+    }
+
+    DISMISSED_REVIEW_GROUPS {
+        text groupKey PK
+        text mode
+        text dismissedAt
+    }
+
+    FILE_INDEX ||--o| REVIEW_DECISIONS : "fileKey may match"
+    FILE_INDEX ||--o| MEDIA_FINGERPRINTS : "fileKey may match"

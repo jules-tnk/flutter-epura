@@ -1,0 +1,28 @@
+flowchart TD
+    change["Code or docs change"]
+    generated{"Generated files affected?"}
+    codegen["Run build_runner and/or gen-l10n"]
+    analyze["flutter analyze"]
+    tests["flutter test"]
+    docs{"Docs changed?"}
+    diffCheck["git diff --check"]
+    androidRisk{"Android storage, permission, deletion, or notification risk?"}
+    device["Validate on attached Android device"]
+    build["flutter build apk --release"]
+    tag["Tag v* release"]
+    ci["GitHub Actions release workflow"]
+
+    change --> generated
+    generated -- "yes" --> codegen
+    generated -- "no" --> analyze
+    codegen --> analyze
+    analyze --> tests
+    tests --> docs
+    docs -- "yes" --> diffCheck
+    docs -- "no" --> androidRisk
+    diffCheck --> androidRisk
+    androidRisk -- "yes" --> device
+    androidRisk -- "no" --> build
+    device --> build
+    build --> tag
+    tag --> ci

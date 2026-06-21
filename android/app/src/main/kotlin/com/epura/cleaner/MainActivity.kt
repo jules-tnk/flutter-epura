@@ -1,11 +1,13 @@
 package com.epura.cleaner
 
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
+import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -16,14 +18,15 @@ class MainActivity : FlutterActivity() {
         private const val REQUEST_PICK_DOCUMENTS = 1002
     }
 
-    private val channelName = "com.epura.cleaner/document_access"
+    private val documentAccessChannelName = "com.epura.cleaner/document_access"
+    private val androidSettingsChannelName = "com.epura.cleaner/android_settings"
     private var pendingFolderResult: MethodChannel.Result? = null
     private var pendingDocumentsResult: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, documentAccessChannelName)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "pickFolder" -> {
@@ -107,6 +110,14 @@ class MainActivity : FlutterActivity() {
                         result.success(null)
                     }
 
+                    else -> result.notImplemented()
+                }
+            }
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, androidSettingsChannelName)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "openStorageSettings" -> result.success(openStorageSettings())
                     else -> result.notImplemented()
                 }
             }
@@ -281,6 +292,26 @@ class MainActivity : FlutterActivity() {
         } catch (_: SecurityException) {
             // Ignore permissions that are already released or not persisted.
         }
+    }
+
+    private fun openStorageSettings(): Boolean {
+        val intents = listOf(
+            Intent(Settings.ACTION_INTERNAL_STORAGE_SETTINGS),
+            Intent(Settings.ACTION_SETTINGS),
+        )
+
+        for (intent in intents) {
+            try {
+                startActivity(intent)
+                return true
+            } catch (_: ActivityNotFoundException) {
+                // Try the next available Android settings screen.
+            } catch (_: SecurityException) {
+                // Treat unavailable settings surfaces as a graceful no-op.
+            }
+        }
+
+        return false
     }
 
     private fun Cursor.getLongOrZero(index: Int): Long {

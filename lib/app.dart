@@ -3,14 +3,16 @@ import 'package:provider/provider.dart';
 
 import 'l10n/app_localizations.dart';
 import 'providers/settings_provider.dart';
-import 'screens/home_screen.dart';
+import 'screens/burst_groups_screen.dart';
+import 'screens/duplicate_groups_screen.dart';
+import 'screens/privacy_permissions_screen.dart';
 import 'screens/review_screen.dart';
 import 'screens/summary_screen.dart';
-import 'screens/settings_screen.dart';
 import 'screens/privacy_policy_screen.dart';
-import 'screens/stats_screen.dart';
+import 'screens/storage_insight_screen.dart';
 import 'screens/terms_of_service_screen.dart';
 import 'theme/app_theme.dart';
+import 'widgets/epura_shell.dart';
 
 class EpuraApp extends StatelessWidget {
   const EpuraApp({super.key});
@@ -20,6 +22,10 @@ class EpuraApp extends StatelessWidget {
   static const String routeSummary = '/summary';
   static const String routeSettings = '/settings';
   static const String routeStats = '/stats';
+  static const String routeStorageInsight = '/storage-insight';
+  static const String routeBurstGroups = '/burst-groups';
+  static const String routeDuplicateGroups = '/duplicate-groups';
+  static const String routePrivacyPermissions = '/privacy-permissions';
   static const String routePrivacyPolicy = '/privacy-policy';
   static const String routeTermsOfService = '/terms-of-service';
 
@@ -38,11 +44,16 @@ class EpuraApp extends StatelessWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       initialRoute: routeHome,
       routes: {
-        routeHome: (_) => const HomeScreen(),
+        routeHome: (_) => const EpuraShell(),
         routeReview: (_) => const ReviewScreen(),
         routeSummary: (_) => const SummaryScreen(),
-        routeSettings: (_) => const SettingsScreen(),
-        routeStats: (_) => const StatsScreen(),
+        routeSettings: (_) =>
+            const EpuraShell(initialTab: EpuraShellTab.settings),
+        routeStats: (_) => const EpuraShell(initialTab: EpuraShellTab.stats),
+        routeStorageInsight: (_) => const StorageInsightScreen(),
+        routeBurstGroups: (_) => const BurstGroupsScreen(),
+        routeDuplicateGroups: (_) => const DuplicateGroupsScreen(),
+        routePrivacyPermissions: (_) => const PrivacyPermissionsScreen(),
         routePrivacyPolicy: (_) => const PrivacyPolicyScreen(),
         routeTermsOfService: (_) => const TermsOfServiceScreen(),
       },

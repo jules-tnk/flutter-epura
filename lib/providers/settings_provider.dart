@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models/scan_folder_grant.dart';
+import '../models/folder_profile.dart';
 import '../services/document_access_service.dart';
 import '../services/notification_service.dart';
+import '../services/review_prompt_policy.dart';
 
 class SettingsProvider extends ChangeNotifier {
   static const String _keyReminderHour = 'reminderHour';
@@ -21,20 +22,20 @@ class SettingsProvider extends ChangeNotifier {
   static const String _keyNotificationDayOfWeek = 'notificationDayOfWeek';
   static const String _keyThemeMode = 'themeMode';
   static const String _keyHasAcceptedTerms = 'hasAcceptedTerms';
+  static const String _keySuccessfulReviewSessionCount =
+      'successfulReviewSessionCount';
+  static const String _keyReviewPromptDismissed = 'reviewPromptDismissed';
 
   final NotificationService _notificationService;
   final DocumentAccessService _documentAccessService;
   late final SharedPreferences _prefs;
 
-  SettingsProvider(
-    this._notificationService,
-    this._documentAccessService,
-  );
+  SettingsProvider(this._notificationService, this._documentAccessService);
 
   TimeOfDay _reminderTime = const TimeOfDay(hour: 20, minute: 0);
   bool _scanPhotos = true;
   bool _scanVideos = true;
-  List<ScanFolderGrant> _customFolders = const [];
+  List<FolderProfile> _customFolders = const [];
   bool _notificationsEnabled = false;
   String? _localeCode;
   DateTime? _lastReviewTimestamp;
@@ -43,11 +44,13 @@ class SettingsProvider extends ChangeNotifier {
   DateTime? _nextNotificationTime;
   String _themeMode = 'system';
   bool _hasAcceptedTerms = false;
+  int _successfulReviewSessionCount = 0;
+  bool _reviewPromptDismissed = false;
 
   TimeOfDay get reminderTime => _reminderTime;
   bool get scanPhotos => _scanPhotos;
   bool get scanVideos => _scanVideos;
-  List<ScanFolderGrant> get customFolders => List.unmodifiable(_customFolders);
+  List<FolderProfile> get customFolders => List.unmodifiable(_customFolders);
   bool get notificationsEnabled => _notificationsEnabled;
   Locale? get locale => _localeCode != null ? Locale(_localeCode!) : null;
   String? get localeCode => _localeCode;
@@ -57,6 +60,8 @@ class SettingsProvider extends ChangeNotifier {
   DateTime? get nextNotificationTime => _nextNotificationTime;
   String get themeMode => _themeMode;
   bool get hasAcceptedTerms => _hasAcceptedTerms;
+  int get successfulReviewSessionCount => _successfulReviewSessionCount;
+  bool get reviewPromptDismissed => _reviewPromptDismissed;
 
   ThemeMode get resolvedThemeMode {
     switch (_themeMode) {
@@ -79,9 +84,10 @@ class SettingsProvider extends ChangeNotifier {
     _scanPhotos = _prefs.getBool(_keyScanPhotos) ?? true;
     _scanVideos = _prefs.getBool(_keyScanVideos) ?? true;
     _customFolders = (_prefs.getStringList(_keyCustomFolders) ?? const [])
-        .map((raw) => ScanFolderGrant.fromJson(
-              jsonDecode(raw) as Map<String, dynamic>,
-            ))
+        .map(
+          (raw) =>
+              FolderProfile.fromJson(jsonDecode(raw) as Map<String, dynamic>),
+        )
         .toList();
     _notificationsEnabled = _prefs.getBool(_keyNotificationsEnabled) ?? false;
     _localeCode = _prefs.getString(_keyLocale);
@@ -91,10 +97,14 @@ class SettingsProvider extends ChangeNotifier {
         _prefs.getInt(_keyNotificationDayOfWeek) ?? DateTime.monday;
     _themeMode = _prefs.getString(_keyThemeMode) ?? 'system';
     _hasAcceptedTerms = _prefs.getBool(_keyHasAcceptedTerms) ?? false;
+    _successfulReviewSessionCount =
+        _prefs.getInt(_keySuccessfulReviewSessionCount) ?? 0;
+    _reviewPromptDismissed = _prefs.getBool(_keyReviewPromptDismissed) ?? false;
 
     final timestampStr = _prefs.getString(_keyLastReviewTimestamp);
-    _lastReviewTimestamp =
-        timestampStr != null ? DateTime.tryParse(timestampStr) : null;
+    _lastReviewTimestamp = timestampStr != null
+        ? DateTime.tryParse(timestampStr)
+        : null;
   }
 
   Future<void> _persistCustomFolders() async {
@@ -110,6 +120,7 @@ class SettingsProvider extends ChangeNotifier {
         _reminderTime,
         _notificationInterval,
         _notificationDayOfWeek,
+        localeCode: _localeCode,
       );
     }
   }
@@ -138,24 +149,48 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<ScanFolderGrant?> addCustomFolder() async {
+  Future<FolderProfile?> addCustomFolder() async {
     final folder = await _documentAccessService.pickFolder();
     if (folder == null ||
         _customFolders.any((entry) => entry.uri == folder.uri)) {
       return null;
     }
 
-    _customFolders = [..._customFolders, folder];
+    final profile = FolderProfile.fromGrant(folder);
+    _customFolders = [..._customFolders, profile];
     await _persistCustomFolders();
     notifyListeners();
-    return folder;
+    return profile;
   }
 
-  Future<void> removeCustomFolder(ScanFolderGrant folder) async {
-    _customFolders =
-        _customFolders.where((entry) => entry.uri != folder.uri).toList();
+  Future<void> removeCustomFolder(FolderProfile folder) async {
+    _customFolders = _customFolders
+        .where((entry) => entry.uri != folder.uri)
+        .toList();
     await _persistCustomFolders();
     await _documentAccessService.releasePersistedUriPermission(folder.uri);
+    notifyListeners();
+  }
+
+  Future<void> renameCustomFolder(FolderProfile folder, String nickname) async {
+    final trimmed = nickname.trim();
+    _customFolders = _customFolders.map((entry) {
+      if (entry.uri != folder.uri) return entry;
+      return entry.copyWith(
+        nickname: trimmed.isEmpty ? null : trimmed,
+        clearNickname: trimmed.isEmpty,
+      );
+    }).toList();
+    await _persistCustomFolders();
+    notifyListeners();
+  }
+
+  Future<void> markFolderReviewed(String folderUri, DateTime timestamp) async {
+    _customFolders = _customFolders.map((entry) {
+      if (entry.uri != folderUri) return entry;
+      return entry.copyWith(lastReviewedAt: timestamp);
+    }).toList();
+    await _persistCustomFolders();
     notifyListeners();
   }
 
@@ -229,6 +264,12 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> clearReviewHistory() async {
+    _lastReviewTimestamp = null;
+    await _prefs.remove(_keyLastReviewTimestamp);
+    notifyListeners();
+  }
+
   Future<void> setThemeMode(String mode) async {
     if (_themeMode == mode) return;
     _themeMode = mode;
@@ -240,6 +281,33 @@ class SettingsProvider extends ChangeNotifier {
     if (_hasAcceptedTerms == value) return;
     _hasAcceptedTerms = value;
     await _prefs.setBool(_keyHasAcceptedTerms, value);
+    notifyListeners();
+  }
+
+  bool shouldShowReviewPrompt(int failedDeletionCount) {
+    return const ReviewPromptPolicy().shouldShow(
+      successfulSessionCount: _successfulReviewSessionCount,
+      promptDismissed: _reviewPromptDismissed,
+      failedDeletionCount: failedDeletionCount,
+    );
+  }
+
+  Future<void> recordSuccessfulReviewSession({
+    required bool hadFailedDeletions,
+  }) async {
+    if (hadFailedDeletions) return;
+    _successfulReviewSessionCount++;
+    await _prefs.setInt(
+      _keySuccessfulReviewSessionCount,
+      _successfulReviewSessionCount,
+    );
+    notifyListeners();
+  }
+
+  Future<void> dismissReviewPrompt() async {
+    if (_reviewPromptDismissed) return;
+    _reviewPromptDismissed = true;
+    await _prefs.setBool(_keyReviewPromptDismissed, true);
     notifyListeners();
   }
 }

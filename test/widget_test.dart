@@ -11,7 +11,9 @@ import 'package:epura/services/thumbnail_cache.dart';
 import 'test_helpers.dart';
 
 void main() {
-  testWidgets('App renders smoke test with providers', (WidgetTester tester) async {
+  testWidgets('App renders smoke test with providers', (
+    WidgetTester tester,
+  ) async {
     configureTestViewport(tester);
     addTearDown(() => resetTestViewport(tester));
 
@@ -41,7 +43,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('epura'), findsOneWidget);
+    expect(find.text('Epura'), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Review'), findsNothing);
+    expect(find.text('Stats'), findsOneWidget);
+    expect(find.text('Settings'), findsOneWidget);
     expect(find.text('Add downloaded files'), findsOneWidget);
   });
 }

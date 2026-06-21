@@ -89,6 +89,7 @@
 
     .hero-copy {
       max-width: 680px;
+      min-width: 0;
       animation: rise 720ms ease both;
     }
 
@@ -141,13 +142,13 @@
 
     .phone-stack {
       position: relative;
-      min-height: min(760px, 82svh);
+      min-height: min(820px, 86svh);
       animation: settle 760ms 120ms ease both;
     }
 
     .screenshot {
       position: absolute;
-      width: min(330px, 42vw);
+      width: min(320px, 38vw);
       max-width: 78%;
       border-radius: 34px;
       box-shadow: var(--shadow);
@@ -173,6 +174,14 @@
       z-index: 1;
       transform: rotate(-4deg) scale(0.86);
       opacity: 0.9;
+    }
+
+    .screenshot.tertiary {
+      right: 0;
+      bottom: 54px;
+      z-index: 1;
+      transform: rotate(4deg) scale(0.78);
+      opacity: 0.94;
     }
 
     .section {
@@ -411,19 +420,29 @@
       }
 
       .phone-stack {
-        min-height: 600px;
+        min-height: 980px;
+        margin-top: 24px;
       }
 
       .screenshot {
-        width: min(310px, 72vw);
+        width: min(260px, 66vw);
       }
 
       .screenshot.primary {
         right: 0;
+        top: 0;
       }
 
       .screenshot.secondary {
         left: 0;
+        top: 220px;
+        bottom: auto;
+      }
+
+      .screenshot.tertiary {
+        right: 0;
+        top: 440px;
+        bottom: auto;
       }
 
       .feature-line {
@@ -445,7 +464,12 @@
       }
 
       h1 {
-        font-size: clamp(48px, 17vw, 72px);
+        max-width: 100%;
+        font-size: clamp(40px, 12.5vw, 50px);
+      }
+
+      .hero-title-line {
+        display: block;
       }
 
       .actions {
@@ -454,11 +478,39 @@
       }
 
       .phone-stack {
-        min-height: 520px;
+        min-height: 930px;
+      }
+
+      .hero-copy {
+        width: calc(100vw - 40px);
+        max-width: calc(100vw - 40px);
+      }
+
+      .hero-copy p {
+        width: min(330px, calc(100vw - 40px));
+        max-width: min(330px, calc(100vw - 40px));
+      }
+
+      .actions {
+        width: min(330px, calc(100vw - 40px));
+        max-width: min(330px, calc(100vw - 40px));
+      }
+
+      .privacy-note {
+        max-width: min(330px, calc(100vw - 40px));
       }
 
       .screenshot {
         border-radius: 24px;
+        width: min(240px, 68vw);
+      }
+
+      .screenshot.secondary {
+        top: 210px;
+      }
+
+      .screenshot.tertiary {
+        top: 420px;
       }
 
       .footer-inner {
@@ -476,7 +528,11 @@
           <img src="icons/Icon-192.png" alt="">
           <span>epura</span>
         </div>
-        <h1 id="hero-title">Clean up the files you forgot about.</h1>
+        <h1 id="hero-title">
+          <span class="hero-title-line">Clean up the</span>
+          <span class="hero-title-line">files you</span>
+          <span class="hero-title-line">forgot about.</span>
+        </h1>
         <p>Epura turns recent photos, videos, selected folders, and imported downloads into a quick swipe review before clutter becomes permanent.</p>
         <div class="actions">
           <a class="play-store-link" href="https://play.google.com/store/apps/details?id=com.epura.cleaner" target="_blank" rel="noopener noreferrer" aria-label="Get Epura on Google Play">
@@ -491,8 +547,9 @@
       </div>
 
       <div class="phone-stack" aria-label="Epura app screenshots">
-        <img class="screenshot primary" src="screenshots/home.png" alt="Epura home screen showing files ready for review">
-        <img class="screenshot secondary" src="screenshots/settings.png" alt="Epura settings screen for reminders, language, and file types">
+        <img class="screenshot primary" src="screenshots/home.png" width="1080" height="2195" alt="Epura home screen showing storage status and review modes">
+        <img class="screenshot secondary" src="screenshots/stats.png" width="1080" height="2195" alt="Epura stats screen showing reviewed files, streak, and sessions">
+        <img class="screenshot tertiary" src="screenshots/settings.png" width="1080" height="2195" alt="Epura settings screen for appearance, reminders, language, and file types">
       </div>
     </section>
 
@@ -512,6 +569,10 @@
           <div class="feature">
             <strong>Selected folders</strong>
             <p>Add custom folders and downloads through Android pickers so Epura only scans what you allow.</p>
+          </div>
+          <div class="feature">
+            <strong>Privacy controls</strong>
+            <p>Review local privacy and permission details inside the app, and clear Epura history without touching your files.</p>
           </div>
         </div>
       </div>
@@ -549,8 +610,9 @@
 
     <footer class="site-footer">
       <div class="footer-inner">
-        <span>Built by <a href="https://github.com/jules-tnk" target="_blank" rel="noopener noreferrer">jules-tnk</a>. Epura keeps cleanup local to your device.</span>
+        <span>Built by <a href="https://github.com/jules-tnk" target="_blank" rel="noopener noreferrer">jules-tnk</a>.</span>
         <nav class="legal-links" aria-label="Legal links">
+          <a href="trust/">Trust Center</a>
           <a href="privacy-policy/">Privacy Policy</a>
           <a href="terms-of-service/">Terms of Service</a>
         </nav>

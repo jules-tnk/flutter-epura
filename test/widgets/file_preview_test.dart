@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -11,17 +11,8 @@ import 'package:epura/widgets/file_preview.dart';
 import '../test_helpers.dart';
 
 void main() {
-  const validPngBytes = <int>[
-    0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
-    0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
-    0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-    0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
-    0x89, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x44, 0x41,
-    0x54, 0x78, 0x9C, 0x63, 0xF8, 0xCF, 0xC0, 0x00,
-    0x00, 0x03, 0x01, 0x01, 0x00, 0xC9, 0xFE, 0x92,
-    0xEF, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E,
-    0x44, 0xAE, 0x42, 0x60, 0x82,
-  ];
+  const transparentPngBase64 =
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC';
 
   testWidgets('FilePreview rebuilds when thumbnail cache is populated', (
     WidgetTester tester,
@@ -58,9 +49,85 @@ void main() {
 
     expect(find.byType(Image), findsNothing);
 
-    cache.insertForTesting('asset-1', Uint8List.fromList(validPngBytes));
+    cache.insertForTesting('asset-1', base64Decode(transparentPngBase64));
     await tester.pump();
 
     expect(find.byType(Image), findsOneWidget);
+  });
+
+  testWidgets('FilePreview fits photo thumbnails without cropping', (
+    WidgetTester tester,
+  ) async {
+    configureTestViewport(tester);
+    addTearDown(() => resetTestViewport(tester));
+
+    final cache = ThumbnailCache()
+      ..insertForTesting('photo-fit', base64Decode(transparentPngBase64));
+    final item = ReviewItem(
+      id: 'photo-fit',
+      name: 'photo.jpg',
+      path: '/tmp/photo.jpg',
+      size: 10,
+      type: FileItemType.photo,
+      date: DateTime(2026, 4, 13),
+      source: ReviewItemSource.mediaLibrary,
+    );
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: cache,
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: Scaffold(
+            body: SizedBox(
+              width: 320,
+              height: 220,
+              child: FilePreview(item: item),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final image = tester.widget<Image>(find.byType(Image));
+    expect(image.fit, BoxFit.contain);
+  });
+
+  testWidgets('FilePreview fits video thumbnails without cropping', (
+    WidgetTester tester,
+  ) async {
+    configureTestViewport(tester);
+    addTearDown(() => resetTestViewport(tester));
+
+    final cache = ThumbnailCache()
+      ..insertForTesting('video-fit', base64Decode(transparentPngBase64));
+    final item = ReviewItem(
+      id: 'video-fit',
+      name: 'clip.mp4',
+      path: '/tmp/clip.mp4',
+      size: 10,
+      type: FileItemType.video,
+      date: DateTime(2026, 4, 13),
+      source: ReviewItemSource.mediaLibrary,
+    );
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: cache,
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: Scaffold(
+            body: SizedBox(
+              width: 320,
+              height: 220,
+              child: FilePreview(item: item),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final image = tester.widget<Image>(find.byType(Image));
+    expect(image.fit, BoxFit.contain);
   });
 }

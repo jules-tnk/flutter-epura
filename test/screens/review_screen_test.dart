@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:epura/app.dart';
 import 'package:epura/models/review_item.dart';
+import 'package:epura/models/review_mode.dart';
+import 'package:epura/models/scan_folder_grant.dart';
 import 'package:epura/models/storage_document.dart';
 import 'package:epura/screens/review_screen.dart';
 import 'package:epura/screens/summary_screen.dart';
@@ -206,6 +208,39 @@ void main() {
     expect(find.text('report.pdf'), findsOneWidget);
   });
 
+  testWidgets('Review screen shows local context and queued deletion count', (
+    WidgetTester tester,
+  ) async {
+    configureTestViewport(tester);
+    addTearDown(() => resetTestViewport(tester));
+
+    final context = await createTestContext();
+    context.reviewProvider.startReview([
+      _importedDocumentItem('content://doc/delete-me', name: 'delete-me.pdf'),
+      _importedDocumentItem('content://doc/keep-me', name: 'keep-me.pdf'),
+    ]);
+
+    await _pumpReviewScreen(tester, context);
+
+    expect(find.text('Review locally'), findsNothing);
+    expect(
+      find.text(
+        'Delete marks a file for this session. Epura never chooses or deletes automatically.',
+      ),
+      findsNothing,
+    );
+    expect(find.byIcon(Icons.verified_user_outlined), findsNothing);
+    expect(find.text('1/2'), findsOneWidget);
+    expect(find.text('Delete 0'), findsOneWidget);
+
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('keep-me.pdf'), findsOneWidget);
+    expect(find.text('2/2'), findsOneWidget);
+    expect(find.text('Delete 1'), findsOneWidget);
+  });
+
   testWidgets(
     'Save & Exit shows cleanup progress before navigating to summary',
     (WidgetTester tester) async {
@@ -232,11 +267,15 @@ void main() {
       await tester.tap(find.byIcon(Icons.arrow_back));
       await tester.pumpAndSettle();
 
+      expect(find.text('Leave review?'), findsOneWidget);
+      expect(find.text('Save & Exit'), findsOneWidget);
+      expect(context.documents.deletedUris, isEmpty);
+
       await tester.tap(find.text('Save & Exit'));
       await tester.pump();
 
       expect(find.text('Cleaning up...'), findsOneWidget);
-      expect(find.text('0 / 1 files deleted'), findsOneWidget);
+      expect(find.text('0 / 1 files processed'), findsOneWidget);
       expect(find.text('current.pdf'), findsNothing);
 
       context.documents.deleteBarrier!.complete();
@@ -357,4 +396,99 @@ void main() {
       );
     },
   );
+
+  testWidgets('Never ask again advances the queue', (
+    WidgetTester tester,
+  ) async {
+    configureTestViewport(tester);
+    addTearDown(() => resetTestViewport(tester));
+
+    final context = await createTestContext();
+    context.reviewProvider.startReview([
+      _importedDocumentItem('content://doc/one', name: 'one.pdf'),
+      _importedDocumentItem('content://doc/two', name: 'two.pdf'),
+    ]);
+
+    await _pumpReviewScreen(tester, context);
+
+    await tester.tap(find.text('Never ask again'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('two.pdf'), findsOneWidget);
+    expect(context.reviewProvider.keptCount, 1);
+  });
+
+  testWidgets('Completion refresh honors never-ask-again decisions', (
+    WidgetTester tester,
+  ) async {
+    configureTestViewport(tester);
+    addTearDown(() => resetTestViewport(tester));
+
+    final context = await _createStorageOnlyReviewContext();
+    context.documents.nextFolder = const ScanFolderGrant(
+      uri: 'content://tree/review',
+      name: 'Review',
+    );
+    await context.settings.addCustomFolder();
+    context.documents.folderFilesByUri['content://tree/review'] = [
+      StorageDocument(
+        uri: 'content://doc/never',
+        name: 'never.pdf',
+        size: 20,
+        modifiedAt: DateTime(2030, 1, 1),
+        mimeType: 'application/pdf',
+      ),
+    ];
+    await context.fileService.refreshAllFiles(
+      context.settings,
+      db: context.database,
+    );
+    context.reviewProvider.startReview(context.fileService.items);
+
+    await _pumpReviewScreen(tester, context);
+
+    await tester.tap(find.text('Never ask again'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('All done!'), findsOneWidget);
+    expect(context.fileService.items, isEmpty);
+  });
+
+  testWidgets('Completing one-folder review updates folder last reviewed', (
+    WidgetTester tester,
+  ) async {
+    configureTestViewport(tester);
+    addTearDown(() => resetTestViewport(tester));
+
+    final context = await _createStorageOnlyReviewContext();
+    context.documents.nextFolder = const ScanFolderGrant(
+      uri: 'content://tree/work',
+      name: 'Work',
+    );
+    final folder = await context.settings.addCustomFolder();
+    context.reviewProvider.startReview(
+      [
+        ReviewItem(
+          id: 'content://doc/work',
+          name: 'work.txt',
+          contentUri: 'content://doc/work',
+          size: 20,
+          type: FileItemType.download,
+          date: DateTime(2026, 5, 31),
+          source: ReviewItemSource.customFolder,
+          folderUri: folder!.uri,
+        ),
+      ],
+      reviewMode: ReviewMode.folder(
+        folderUri: folder.uri,
+        folderName: folder.displayName,
+      ),
+    );
+
+    await _pumpReviewScreen(tester, context);
+    await tester.tap(find.text('Keep'));
+    await tester.pumpAndSettle();
+
+    expect(context.settings.customFolders.single.lastReviewedAt, isNotNull);
+  });
 }

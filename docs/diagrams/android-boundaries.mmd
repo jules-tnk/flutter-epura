@@ -1,0 +1,38 @@
+flowchart TD
+    flutter["Flutter UI and providers"]
+    photoManager["photo_manager"]
+    notifications["flutter_local_notifications"]
+    permissions["permission_handler"]
+    methodChannel["MethodChannel document/settings services"]
+    mediaStore["Android media library"]
+    saf["Storage Access Framework"]
+    settings["Android settings"]
+    alarm["Android alarm/notification system"]
+
+    flutter --> photoManager
+    flutter --> notifications
+    flutter --> permissions
+    flutter --> methodChannel
+
+    photoManager --> mediaStore
+    permissions --> mediaStore
+    notifications --> alarm
+    methodChannel --> saf
+    methodChannel --> settings
+
+    subgraph FlutterPlugins["Plugin boundary"]
+        photoManager
+        notifications
+        permissions
+    end
+
+    subgraph NativeBridge["Kotlin bridge"]
+        methodChannel
+    end
+
+    subgraph AndroidSystem["Android system-owned UI and storage"]
+        mediaStore
+        saf
+        settings
+        alarm
+    end

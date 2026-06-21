@@ -1,0 +1,29 @@
+flowchart TD
+    home["Home"]
+    mode["Choose review mode"]
+    lookback["Choose lookback when mode uses dates"]
+    scan["Scan media, folders, and imports"]
+    filter["Apply mode filter and decision memory"]
+    grouped{"Grouped mode?"}
+    groupScreen["Group review screen"]
+    review["Swipe review deck"]
+    decisions["Collect keep/delete/skip/never-ask-again"]
+    confirm["Confirm session completion"]
+    execute["Execute pending deletions"]
+    persist["Persist session, stats, and decision memory"]
+    summary["Summary"]
+
+    home --> mode
+    mode --> lookback
+    mode --> scan
+    lookback --> scan
+    scan --> filter
+    filter --> grouped
+    grouped -- "duplicates, bursts" --> groupScreen
+    grouped -- "standard modes" --> review
+    groupScreen --> review
+    review --> decisions
+    decisions --> confirm
+    confirm --> execute
+    execute --> persist
+    persist --> summary

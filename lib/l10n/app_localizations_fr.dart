@@ -9,7 +9,48 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
-  String get appTitle => 'epura';
+  String get appTitle => 'Epura';
+
+  @override
+  String get home => 'Accueil';
+
+  @override
+  String get review => 'Revue';
+
+  @override
+  String get localOnlyBadge => 'Local uniquement';
+
+  @override
+  String get takeControlOfSpace => 'Reprenez le contrôle de votre espace';
+
+  @override
+  String get allTime => 'Depuis le début';
+
+  @override
+  String get thisMonth => 'Ce mois-ci';
+
+  @override
+  String get thisSession => 'Cette session';
+
+  @override
+  String get daysInARow => 'jours de suite';
+
+  @override
+  String get readyToReview => 'Prêt à passer en revue';
+
+  @override
+  String reviewModesAvailable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count modes de revue disponibles',
+      one: '1 mode de revue disponible',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get resumeReview => 'Reprendre la revue';
 
   @override
   String get notificationTitle => 'C\'est l\'heure du tri !';
@@ -51,6 +92,129 @@ class AppLocalizationsFr extends AppLocalizations {
   String get stats => 'Statistiques';
 
   @override
+  String get reviewModes => 'Modes de revue';
+
+  @override
+  String get reviewModeRecent => 'Récents';
+
+  @override
+  String get reviewModeLargestFiles => 'Plus gros';
+
+  @override
+  String get reviewModeScreenshots => 'Captures';
+
+  @override
+  String get reviewModeLargeVideos => 'Grandes vidéos';
+
+  @override
+  String get reviewModeBursts => 'Rafales';
+
+  @override
+  String get reviewModeDownloads => 'Téléchargements';
+
+  @override
+  String get reviewModeSelectedFolders => 'Dossiers sélectionnés';
+
+  @override
+  String reviewModeFolder(String name) {
+    return 'Dossier : $name';
+  }
+
+  @override
+  String get reviewModeDuplicates => 'Doublons';
+
+  @override
+  String get reviewModeSkipped => 'Passés';
+
+  @override
+  String get reviewModeMore => 'Plus de modes';
+
+  @override
+  String get reviewModeSheetTitle => 'Choisir un mode de revue';
+
+  @override
+  String get noFilesForMode => 'Aucun fichier trouvé pour ce mode de revue.';
+
+  @override
+  String get exactDuplicateGroups => 'Groupes de doublons exacts';
+
+  @override
+  String exactCopies(int count) {
+    return '$count copies exactes';
+  }
+
+  @override
+  String recoverableStorage(String size) {
+    return '$size récupérables';
+  }
+
+  @override
+  String get reviewGroup => 'Examiner le groupe';
+
+  @override
+  String reviewGroupCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count groupes',
+      one: '1 groupe',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get compareGroup => 'Comparer le groupe';
+
+  @override
+  String get comparePhotos => 'Comparer les photos';
+
+  @override
+  String get compareShots => 'Comparer les prises';
+
+  @override
+  String groupComparePosition(int index, int count) {
+    return '$index sur $count';
+  }
+
+  @override
+  String get dismissGroup => 'Masquer le groupe';
+
+  @override
+  String get groupDismissed => 'Groupe masqué.';
+
+  @override
+  String get noDuplicateGroups => 'Aucun groupe de doublons exacts trouvé.';
+
+  @override
+  String get photoBursts => 'Rafales photo';
+
+  @override
+  String burstShots(int count) {
+    return '$count prises';
+  }
+
+  @override
+  String burstSpan(int seconds) {
+    return '${seconds}s d\'écart';
+  }
+
+  @override
+  String burstTotalStorage(String size) {
+    return '$size au total';
+  }
+
+  @override
+  String groupTotalStorage(String size) {
+    return '$size au total';
+  }
+
+  @override
+  String get reviewBurst => 'Examiner la rafale';
+
+  @override
+  String get noBurstGroups => 'Aucune rafale photo trouvée.';
+
+  @override
   String get leaveReview => 'Quitter l\'examen ?';
 
   @override
@@ -59,6 +223,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get cancel => 'Annuler';
+
+  @override
+  String get save => 'Enregistrer';
 
   @override
   String get saveAndExit => 'Enregistrer et quitter';
@@ -70,6 +237,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get skipForLater => 'Passer pour plus tard';
 
   @override
+  String get neverAskAgain => 'Ne plus demander';
+
+  @override
+  String reviewProgress(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
+  String filesMarkedForDeletion(int count) {
+    return 'Supprimer $count';
+  }
+
+  @override
   String get photo => 'Photo';
 
   @override
@@ -77,6 +257,27 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get download => 'Téléchargement';
+
+  @override
+  String get openPreview => 'Ouvrir l\'aperçu';
+
+  @override
+  String duplicateCandidate(int index, int count) {
+    return 'Doublon $index sur $count';
+  }
+
+  @override
+  String get duplicateCandidateHelp =>
+      'Même empreinte locale et même taille. Vérifiez chaque copie ; Epura ne supprime rien automatiquement.';
+
+  @override
+  String burstCandidate(int index, int count) {
+    return 'Rafale $index sur $count';
+  }
+
+  @override
+  String get burstCandidateHelp =>
+      'Photos prises à quelques secondes d\'écart. Examinez chaque prise ; Epura ne choisit pas automatiquement la meilleure.';
 
   @override
   String get delete => 'Supprimer';
@@ -101,6 +302,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get motivationalMessage => 'Bravo, votre appareil est bien rangé !';
+
+  @override
+  String get reviewPromptTitle => 'Vous aimez Epura ?';
+
+  @override
+  String get reviewPromptBody =>
+      'Une note sur le Play Store aide d\'autres personnes à trouver une app de nettoyage privée. Epura ne demande qu\'après des sessions réussies.';
+
+  @override
+  String get rateEpura => 'Noter Epura';
+
+  @override
+  String get notNow => 'Pas maintenant';
 
   @override
   String get viewStats => 'Voir les statistiques';
@@ -155,12 +369,120 @@ class AppLocalizationsFr extends AppLocalizations {
   String get totalReviewed => 'Total examinés';
 
   @override
+  String get sessions => 'Sessions';
+
+  @override
   String get sessionHistory => 'Historique des sessions';
+
+  @override
+  String get recentSessions => 'Sessions récentes';
 
   @override
   String filesReviewedCount(int count) {
     return '$count fichiers examinés';
   }
+
+  @override
+  String get monthlyReviewProgress => 'Progression de revue ce mois-ci';
+
+  @override
+  String get storageFreedThisMonth => 'Espace libéré ce mois-ci';
+
+  @override
+  String get storageInsightTitle => 'Analyse du stockage';
+
+  @override
+  String get storageInsightStatsEntryBody =>
+      'Voir ce qu\'Epura peut examiner et ce qu\'Android gère.';
+
+  @override
+  String get storageInsightEpuraCanReview => 'Epura peut examiner';
+
+  @override
+  String get storageInsightEpuraCanReviewBody =>
+      'Cela couvre seulement le stockage choisi pour l\'analyse : photos, vidéos, dossiers sélectionnés et fichiers importés.';
+
+  @override
+  String storageInsightFilesAvailable(int count) {
+    return '$count fichiers dans le périmètre';
+  }
+
+  @override
+  String get storageInsightAlreadyFreed => 'Déjà libéré';
+
+  @override
+  String get storageInsightPhotosVideos => 'Photos et vidéos';
+
+  @override
+  String get storageInsightGuideTitle => 'Qu\'est-ce qui prend de la place ?';
+
+  @override
+  String get storageInsightPhotosVideosBody =>
+      'Les médias grossissent souvent le plus vite. Epura aide à examiner les photos et vidéos qu\'Android lui laisse voir.';
+
+  @override
+  String get storageInsightDownloadsBody =>
+      'Les téléchargements importés et dossiers sélectionnés restent locaux et sont examinés seulement après votre choix.';
+
+  @override
+  String get storageInsightAppCache => 'Cache des apps';
+
+  @override
+  String get storageInsightAppCacheBody =>
+      'Android gère le cache des autres apps. Epura ne le vide pas et n\'inspecte pas vos apps installées.';
+
+  @override
+  String get storageInsightCloudCopies => 'Copies cloud';
+
+  @override
+  String get storageInsightCloudCopiesBody =>
+      'Un fichier peut sembler sauvegardé tout en occupant l\'appareil. Vérifiez l\'app d\'origine avant de supprimer un élément important.';
+
+  @override
+  String get storageInsightSystemStorage => 'Stockage système';
+
+  @override
+  String get storageInsightSystemStorageBody =>
+      'Les fichiers système et données cachées des apps relèvent des paramètres Android, pas du tri Epura.';
+
+  @override
+  String get storageInsightPlanTitle => 'Plan de nettoyage';
+
+  @override
+  String get storageInsightPlan2MinuteTitle => 'Nettoyage en 2 minutes';
+
+  @override
+  String get storageInsightPlan2MinuteBody =>
+      'Examinez les captures récentes et les images ponctuelles évidentes.';
+
+  @override
+  String get storageInsightPlan5MinuteTitle => 'Nettoyage en 5 minutes';
+
+  @override
+  String get storageInsightPlan5MinuteBody =>
+      'Examinez d\'abord les grandes vidéos et les groupes de doublons exacts.';
+
+  @override
+  String get storageInsightPlanWeeklyTitle => 'Nettoyage hebdomadaire';
+
+  @override
+  String get storageInsightPlanWeeklyBody =>
+      'Examinez les nouveaux fichiers depuis la dernière session avant que la file grandisse.';
+
+  @override
+  String get storageInsightPlanMonthlyTitle => 'Nettoyage mensuel';
+
+  @override
+  String get storageInsightPlanMonthlyBody =>
+      'Importez les téléchargements ou rescanez les dossiers sélectionnés qui demandent un tri.';
+
+  @override
+  String get openAndroidStorageSettings =>
+      'Ouvrir les paramètres de stockage Android';
+
+  @override
+  String get androidStorageSettingsUnavailable =>
+      'Les paramètres de stockage Android ne sont pas disponibles sur cet appareil.';
 
   @override
   String get allClean => 'Tout est propre !';
@@ -282,8 +604,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cleaningUp => 'Nettoyage en cours...';
 
   @override
-  String filesDeletedProgress(int done, int total) {
-    return '$done / $total fichiers supprimés';
+  String filesRemovalProgress(int done, int total) {
+    return '$done / $total fichiers traités';
   }
 
   @override
@@ -299,13 +621,75 @@ class AppLocalizationsFr extends AppLocalizations {
   String get addDownloadedFiles => 'Ajouter des fichiers téléchargés';
 
   @override
+  String get downloadsInboxTitle => 'Boîte de téléchargements';
+
+  @override
+  String downloadsInboxSummary(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fichiers importés - $size',
+      one: '1 fichier importé - $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get downloadsInboxBody =>
+      'Android vous demande de choisir les téléchargements manuellement. Epura examine seulement les fichiers choisis.';
+
+  @override
+  String get reviewDownloads => 'Examiner les téléchargements';
+
+  @override
+  String get filterDownloads => 'Filtrer';
+
+  @override
+  String get downloadFilterTitle => 'Examiner les téléchargements par type';
+
+  @override
+  String get downloadFilterAll => 'Tous les téléchargements';
+
+  @override
+  String get downloadFilterPdfs => 'PDF';
+
+  @override
+  String get downloadFilterArchives => 'Archives';
+
+  @override
+  String get downloadFilterApks => 'APK';
+
+  @override
+  String get downloadFilterAudio => 'Audio';
+
+  @override
+  String get downloadFilterDocuments => 'Documents';
+
+  @override
+  String get downloadFilterOther => 'Autres';
+
+  @override
+  String downloadFilterOption(String label, int count) {
+    return '$label ($count)';
+  }
+
+  @override
+  String get addMoreDownloads => 'Ajouter';
+
+  @override
   String clearImportedFiles(int count) {
     return 'Effacer les fichiers importés ($count)';
   }
 
   @override
   String importedFilesAdded(int count) {
-    return '$count fichiers ajoutés à votre file d\'examen.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fichiers ajoutés à votre file d\'examen.',
+      one: '1 fichier ajouté à votre file d\'examen.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -321,6 +705,17 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get customFoldersHelp =>
       'Choisissez les dossiers qu\'Epura doit rescanner automatiquement. L\'accès est limité aux dossiers que vous sélectionnez explicitement.';
+
+  @override
+  String get renameFolder => 'Renommer le dossier';
+
+  @override
+  String get folderNickname => 'Nom du dossier';
+
+  @override
+  String folderLastReviewed(String date) {
+    return 'Dernière revue : $date';
+  }
 
   @override
   String get noCustomFolders =>
@@ -346,6 +741,34 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String filesMovedToTrash(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count fichiers déplacés vers la corbeille Android. Vous pourrez peut-être les restaurer depuis votre galerie jusqu\'à ce qu\'Android vide la corbeille.',
+      one:
+          '1 fichier déplacé vers la corbeille Android. Vous pourrez peut-être le restaurer depuis votre galerie jusqu\'à ce qu\'Android vide la corbeille.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String filesPermanentlyDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fichiers ont été supprimés définitivement.',
+      one: '1 fichier a été supprimé définitivement.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trashStorageFreedNote =>
+      'L\'espace libéré ne compte que les fichiers supprimés définitivement. Les médias dans la corbeille peuvent encore occuper de l\'espace jusqu\'à ce que la corbeille soit vidée.';
+
+  @override
   String get appearance => 'Apparence';
 
   @override
@@ -365,6 +788,114 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get viewOnline => 'Voir en ligne';
+
+  @override
+  String get privacyAndControl => 'Confidentialité et contrôle';
+
+  @override
+  String get privacyPermissions => 'Confidentialité et autorisations';
+
+  @override
+  String get privacyPermissionsSubtitle =>
+      'Voyez ce qu\'Epura peut utiliser et effacez l\'historique local.';
+
+  @override
+  String get privacyReceipt => 'Reçu de confidentialité';
+
+  @override
+  String get noAccount => 'Aucun compte';
+
+  @override
+  String get noCloudSync => 'Aucune synchronisation cloud';
+
+  @override
+  String get noAnalyticsTracking => 'Aucune analyse ni suivi';
+
+  @override
+  String get localOnlyProcessing => 'Tout le traitement reste sur cet appareil';
+
+  @override
+  String get permissionsEpuraUses => 'Autorisations utilisées par Epura';
+
+  @override
+  String get mediaPermissionTitle => 'Photos et vidéos';
+
+  @override
+  String get mediaPermissionBody =>
+      'Utilisées uniquement pour afficher les médias choisis dans votre revue.';
+
+  @override
+  String get selectedFoldersPermissionTitle =>
+      'Dossiers et fichiers sélectionnés';
+
+  @override
+  String get selectedFoldersPermissionBody =>
+      'Utilisés uniquement pour les dossiers ou fichiers téléchargés que vous choisissez avec le sélecteur Android.';
+
+  @override
+  String get notificationsPermissionTitle => 'Notifications';
+
+  @override
+  String get notificationsPermissionBody =>
+      'Utilisées uniquement pour les rappels que vous activez.';
+
+  @override
+  String get currentLocalAccess => 'Accès local actuel';
+
+  @override
+  String get selectedFolders => 'Dossiers sélectionnés';
+
+  @override
+  String get noneSelected => 'Aucun';
+
+  @override
+  String selectedFolderCount(int count) {
+    return '$count sélectionné(s)';
+  }
+
+  @override
+  String get enabled => 'Activé';
+
+  @override
+  String get disabled => 'Désactivé';
+
+  @override
+  String get localHistory => 'Historique local';
+
+  @override
+  String get noLocalReviewHistory => 'Aucun historique local';
+
+  @override
+  String localReviewSessionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sessions locales',
+      one: '1 session locale',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get clearHistoryExplanation =>
+      'Cela efface les statistiques de revue d\'Epura, le repère de dernière revue, la file des fichiers passés, les décisions « ne plus demander », les groupes masqués et l\'index local des fichiers. Cela ne supprime pas vos fichiers, ne révoque pas les dossiers sélectionnés et ne change pas vos réglages de scan.';
+
+  @override
+  String get clearEpuraHistory => 'Effacer l\'historique Epura';
+
+  @override
+  String get clearHistoryTitle => 'Effacer l\'historique local ?';
+
+  @override
+  String get clearHistoryMessage =>
+      'Epura effacera les sessions de revue, les statistiques, le repère de dernière revue, la file des fichiers passés, les décisions « ne plus demander », les groupes masqués et l\'index local des fichiers. Vos fichiers et dossiers sélectionnés resteront inchangés.';
+
+  @override
+  String get clearHistoryConfirm => 'Effacer l\'historique';
+
+  @override
+  String get historyClearedMessage =>
+      'Historique Epura effacé. Vos fichiers n\'ont pas été modifiés.';
 
   @override
   String get welcomeToEpura => 'Bienvenue sur Epura';

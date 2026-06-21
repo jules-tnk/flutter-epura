@@ -58,16 +58,16 @@ class AppTheme {
   static const double radiusPill = 100.0;
 
   // Light palette
-  static const Color _background = Color(0xFFF8F9FA);
+  static const Color _background = Color(0xFFF7FBFF);
   static const Color _surface = Color(0xFFFFFFFF);
-  static const Color _accent = Color(0xFF4DABF7);
-  static const Color _accentLight = Color(0xFFCDE9FD);
-  static const Color _textPrimary = Color(0xFF212529);
-  static const Color _textSecondary = Color(0xFF6C757D);
-  static const Color _textTertiary = Color(0xFFADB5BD);
-  static const Color _divider = Color(0xFFE9ECEF);
-  static const Color _danger = Color(0xFFFF6B6B);
-  static const Color _success = Color(0xFF51CF66);
+  static const Color _accent = Color(0xFF1478E8);
+  static const Color _accentLight = Color(0xFFE7F2FF);
+  static const Color _textPrimary = Color(0xFF111827);
+  static const Color _textSecondary = Color(0xFF475569);
+  static const Color _textTertiary = Color(0xFF94A3B8);
+  static const Color _divider = Color(0xFFDCEAF7);
+  static const Color _danger = Color(0xFFDC2626);
+  static const Color _success = Color(0xFF16803C);
 
   // Dark palette
   static const Color _darkBackground = Color(0xFF1A1A2E);
@@ -82,59 +82,71 @@ class AppTheme {
   static const Color _darkSuccess = Color(0xFF69DB7C);
 
   static ThemeData get lightTheme => _buildTheme(
-        colorScheme: const ColorScheme.light(
-          primary: _accent,
-          onPrimary: Colors.white,
-          secondary: _accentLight,
-          onSecondary: _textPrimary,
-          surface: _surface,
-          onSurface: _textPrimary,
-          error: _danger,
-          onError: Colors.white,
-        ),
-        scaffoldBg: _background,
-        colors: const AppColorsExtension(
-          success: _success,
-          textSecondary: _textSecondary,
-          textTertiary: _textTertiary,
-        ),
-        textPrimary: _textPrimary,
-        textSecondaryColor: _textSecondary,
-        textTertiaryColor: _textTertiary,
-        accentColor: _accent,
-        accentLightColor: _accentLight,
-        surfaceColor: _surface,
-        dividerColor: _divider,
-        bgColor: _background,
-      );
+    colorScheme: const ColorScheme.light(
+      primary: _accent,
+      onPrimary: Colors.white,
+      secondary: _accentLight,
+      onSecondary: _textPrimary,
+      surface: _surface,
+      onSurface: _textPrimary,
+      error: _danger,
+      onError: Colors.white,
+    ),
+    scaffoldBg: _background,
+    colors: const AppColorsExtension(
+      success: _success,
+      textSecondary: _textSecondary,
+      textTertiary: _textTertiary,
+    ),
+    textPrimary: _textPrimary,
+    textSecondaryColor: _textSecondary,
+    textTertiaryColor: _textTertiary,
+    accentColor: _accent,
+    accentLightColor: _accentLight,
+    surfaceColor: _surface,
+    dividerColor: _divider,
+    bgColor: _background,
+  );
 
   static ThemeData get darkTheme => _buildTheme(
-        colorScheme: const ColorScheme.dark(
-          primary: _darkAccent,
-          onPrimary: _darkBackground,
-          secondary: _darkAccentLight,
-          onSecondary: _darkTextPrimary,
-          surface: _darkSurface,
-          onSurface: _darkTextPrimary,
-          error: _darkDanger,
-          onError: Colors.white,
-        ),
-        scaffoldBg: _darkBackground,
-        colors: const AppColorsExtension(
-          success: _darkSuccess,
-          textSecondary: _darkTextSecondary,
-          textTertiary: _darkTextTertiary,
-        ),
-        textPrimary: _darkTextPrimary,
-        textSecondaryColor: _darkTextSecondary,
-        textTertiaryColor: _darkTextTertiary,
-        accentColor: _darkAccent,
-        accentLightColor: _darkAccentLight,
-        surfaceColor: _darkSurface,
-        dividerColor: _darkDivider,
-        bgColor: _darkBackground,
-        bottomSheetBg: _darkSurface,
-      );
+    colorScheme: const ColorScheme.dark(
+      primary: _darkAccent,
+      onPrimary: _darkBackground,
+      secondary: _darkAccentLight,
+      onSecondary: _darkTextPrimary,
+      surface: _darkSurface,
+      onSurface: _darkTextPrimary,
+      error: _darkDanger,
+      onError: Colors.white,
+    ),
+    scaffoldBg: _darkBackground,
+    colors: const AppColorsExtension(
+      success: _darkSuccess,
+      textSecondary: _darkTextSecondary,
+      textTertiary: _darkTextTertiary,
+    ),
+    textPrimary: _darkTextPrimary,
+    textSecondaryColor: _darkTextSecondary,
+    textTertiaryColor: _darkTextTertiary,
+    accentColor: _darkAccent,
+    accentLightColor: _darkAccentLight,
+    surfaceColor: _darkSurface,
+    dividerColor: _darkDivider,
+    bgColor: _darkBackground,
+    bottomSheetBg: _darkSurface,
+  );
+
+  static List<BoxShadow> softShadowFor(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (isDark) return const [];
+    return [
+      BoxShadow(
+        color: const Color(0xFF0F172A).withValues(alpha: 0.06),
+        blurRadius: 18,
+        offset: const Offset(0, 8),
+      ),
+    ];
+  }
 
   static ThemeData _buildTheme({
     required ColorScheme colorScheme,
@@ -154,64 +166,97 @@ class AppTheme {
       useMaterial3: true,
       scaffoldBackgroundColor: scaffoldBg,
       colorScheme: colorScheme,
+      dividerColor: dividerColor,
       extensions: [colors],
 
       textTheme: TextTheme(
         displayLarge: TextStyle(
-          fontSize: 32, fontWeight: FontWeight.w700, color: textPrimary,
-          letterSpacing: -0.5, height: 1.2,
+          fontSize: 32,
+          fontWeight: FontWeight.w700,
+          color: textPrimary,
+          letterSpacing: 0,
+          height: 1.2,
         ),
         displayMedium: TextStyle(
-          fontSize: 28, fontWeight: FontWeight.w700, color: textPrimary,
-          letterSpacing: -0.5, height: 1.2,
+          fontSize: 28,
+          fontWeight: FontWeight.w700,
+          color: textPrimary,
+          letterSpacing: 0,
+          height: 1.2,
         ),
         headlineLarge: TextStyle(
-          fontSize: 24, fontWeight: FontWeight.w600, color: textPrimary,
-          letterSpacing: -0.3, height: 1.3,
+          fontSize: 24,
+          fontWeight: FontWeight.w600,
+          color: textPrimary,
+          letterSpacing: 0,
+          height: 1.3,
         ),
         headlineMedium: TextStyle(
-          fontSize: 20, fontWeight: FontWeight.w600, color: textPrimary,
-          letterSpacing: -0.2, height: 1.3,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: textPrimary,
+          letterSpacing: 0,
+          height: 1.3,
         ),
         headlineSmall: TextStyle(
-          fontSize: 18, fontWeight: FontWeight.w600, color: textPrimary,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: textPrimary,
           height: 1.4,
         ),
         titleLarge: TextStyle(
-          fontSize: 16, fontWeight: FontWeight.w600, color: textPrimary,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: textPrimary,
           height: 1.4,
         ),
         titleMedium: TextStyle(
-          fontSize: 15, fontWeight: FontWeight.w500, color: textPrimary,
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          color: textPrimary,
           height: 1.4,
         ),
         titleSmall: TextStyle(
-          fontSize: 14, fontWeight: FontWeight.w500, color: textSecondaryColor,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: textSecondaryColor,
           height: 1.4,
         ),
         bodyLarge: TextStyle(
-          fontSize: 16, fontWeight: FontWeight.w400, color: textPrimary,
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          color: textPrimary,
           height: 1.5,
         ),
         bodyMedium: TextStyle(
-          fontSize: 14, fontWeight: FontWeight.w400, color: textPrimary,
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          color: textPrimary,
           height: 1.5,
         ),
         bodySmall: TextStyle(
-          fontSize: 12, fontWeight: FontWeight.w400, color: textSecondaryColor,
+          fontSize: 12,
+          fontWeight: FontWeight.w400,
+          color: textSecondaryColor,
           height: 1.5,
         ),
         labelLarge: const TextStyle(
-          fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white,
-          letterSpacing: 0.2,
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+          letterSpacing: 0,
         ),
         labelMedium: TextStyle(
-          fontSize: 13, fontWeight: FontWeight.w500, color: textSecondaryColor,
-          letterSpacing: 0.1,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: textSecondaryColor,
+          letterSpacing: 0,
         ),
         labelSmall: TextStyle(
-          fontSize: 11, fontWeight: FontWeight.w500, color: textTertiaryColor,
-          letterSpacing: 0.5,
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          color: textTertiaryColor,
+          letterSpacing: 0,
         ),
       ),
 
@@ -221,9 +266,16 @@ class AppTheme {
           foregroundColor: colorScheme.onPrimary,
           elevation: 0,
           shadowColor: Colors.transparent,
-          padding: const EdgeInsets.symmetric(horizontal: spaceLG, vertical: spaceMD),
+          padding: const EdgeInsets.symmetric(
+            horizontal: spaceLG,
+            vertical: spaceMD,
+          ),
           shape: const StadiumBorder(),
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.2),
+          textStyle: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0,
+          ),
           minimumSize: const Size(0, 48),
         ),
       ),
@@ -232,9 +284,16 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: accentColor,
           side: BorderSide(color: accentColor, width: 1.5),
-          padding: const EdgeInsets.symmetric(horizontal: spaceLG, vertical: spaceMD),
+          padding: const EdgeInsets.symmetric(
+            horizontal: spaceLG,
+            vertical: spaceMD,
+          ),
           shape: const StadiumBorder(),
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.2),
+          textStyle: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0,
+          ),
           minimumSize: const Size(0, 48),
         ),
       ),
@@ -242,9 +301,16 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: accentColor,
-          padding: const EdgeInsets.symmetric(horizontal: spaceMD, vertical: spaceSM),
+          padding: const EdgeInsets.symmetric(
+            horizontal: spaceMD,
+            vertical: spaceSM,
+          ),
           shape: const StadiumBorder(),
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 0.1),
+          textStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0,
+          ),
         ),
       ),
 
@@ -266,9 +332,33 @@ class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle: false,
         titleTextStyle: TextStyle(
-          fontSize: 20, fontWeight: FontWeight.w700, color: textPrimary, letterSpacing: -0.2,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          color: textPrimary,
+          letterSpacing: 0,
         ),
         iconTheme: IconThemeData(color: textPrimary, size: 22),
+      ),
+
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: surfaceColor,
+        indicatorColor: accentLightColor,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return TextStyle(
+            fontSize: 12,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            color: selected ? accentColor : textSecondaryColor,
+            letterSpacing: 0,
+          );
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return IconThemeData(
+            color: selected ? accentColor : textSecondaryColor,
+            size: 26,
+          );
+        }),
       ),
 
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
@@ -279,16 +369,29 @@ class AppTheme {
         type: BottomNavigationBarType.fixed,
         showSelectedLabels: true,
         showUnselectedLabels: true,
-        selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
+        selectedLabelStyle: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w400,
+        ),
       ),
 
-      dividerTheme: DividerThemeData(color: dividerColor, thickness: 1, space: 1),
+      dividerTheme: DividerThemeData(
+        color: dividerColor,
+        thickness: 1,
+        space: 1,
+      ),
 
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: surfaceColor,
-        contentPadding: const EdgeInsets.symmetric(horizontal: spaceMD, vertical: spaceMD),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: spaceMD,
+          vertical: spaceMD,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusMD),
           borderSide: BorderSide(color: dividerColor),
@@ -316,17 +419,27 @@ class AppTheme {
       ),
 
       listTileTheme: const ListTileThemeData(
-        contentPadding: EdgeInsets.symmetric(horizontal: spaceMD, vertical: spaceXS),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: spaceMD,
+          vertical: spaceXS,
+        ),
         minVerticalPadding: spaceXS,
       ),
 
       chipTheme: ChipThemeData(
         backgroundColor: bgColor,
         selectedColor: accentLightColor,
-        labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: textPrimary),
+        labelStyle: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: textPrimary,
+        ),
         side: BorderSide(color: dividerColor),
         shape: const StadiumBorder(),
-        padding: const EdgeInsets.symmetric(horizontal: spaceSM, vertical: spaceXS),
+        padding: const EdgeInsets.symmetric(
+          horizontal: spaceSM,
+          vertical: spaceXS,
+        ),
       ),
 
       bottomSheetTheme: bottomSheetBg != null

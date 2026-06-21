@@ -9,9 +9,20 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/review_item.dart';
-import '../models/scan_folder_grant.dart';
+import '../models/review_decision.dart';
+import '../models/review_group_dismissal.dart';
+import '../models/review_mode.dart';
+import '../models/duplicate_group.dart';
+import '../models/burst_group.dart';
+import '../models/folder_profile.dart';
+import '../models/indexed_file.dart';
 import '../models/storage_document.dart';
+import '../services/database_service.dart';
 import '../services/document_access_service.dart';
+import '../services/duplicate_candidate_service.dart';
+import '../services/burst_candidate_service.dart';
+import '../services/file_identity_service.dart';
+import '../services/review_mode_filter.dart';
 import 'review_provider.dart';
 import 'settings_provider.dart';
 
@@ -39,8 +50,16 @@ class FileService extends ChangeNotifier {
   static const String _keyImportedDocuments = 'importedDocuments';
 
   final DocumentAccessService _documentAccessService;
+  final DuplicateCandidateService _duplicateCandidateService;
+  final BurstCandidateService _burstCandidateService;
 
-  FileService(this._documentAccessService);
+  FileService(
+    this._documentAccessService, {
+    DuplicateCandidateService duplicateCandidateService =
+        const DuplicateCandidateService(),
+    BurstCandidateService burstCandidateService = const BurstCandidateService(),
+  }) : _duplicateCandidateService = duplicateCandidateService,
+       _burstCandidateService = burstCandidateService;
 
   bool _isLoading = false;
   bool _permissionDenied = false;
@@ -48,6 +67,8 @@ class FileService extends ChangeNotifier {
   ScanSummary? _cachedSummary;
   bool _isBackgroundScanning = false;
   List<StorageDocument> _importedDocuments = const [];
+  List<DuplicateGroup> _duplicateGroups = const [];
+  List<BurstGroup> _burstGroups = const [];
   late final SharedPreferences _prefs;
 
   double _scanProgress = 0.0;
@@ -62,7 +83,12 @@ class FileService extends ChangeNotifier {
   ScanSummary? get cachedSummary => _cachedSummary;
   bool get isBackgroundScanning => _isBackgroundScanning;
   int get importedDocumentCount => _importedDocuments.length;
+  int get importedDocumentTotalSize =>
+      _importedDocuments.fold<int>(0, (sum, document) => sum + document.size);
   bool get hasImportedDocuments => _importedDocuments.isNotEmpty;
+  List<DuplicateGroup> get duplicateGroups =>
+      List.unmodifiable(_duplicateGroups);
+  List<BurstGroup> get burstGroups => List.unmodifiable(_burstGroups);
   double get scanProgress => _scanProgress;
   ScanPhase get scanPhase => _scanPhase;
   int get processedAssets => math.min(_processedAssets, _totalEstimatedAssets);
@@ -71,11 +97,13 @@ class FileService extends ChangeNotifier {
   Future<void> refreshAllFiles(
     SettingsProvider settings, {
     bool updateCache = true,
+    DatabaseService? db,
   }) {
     return scanForNewFiles(
       settings,
       since: DateTime.fromMillisecondsSinceEpoch(0),
       updateCache: updateCache,
+      db: db,
     );
   }
 
@@ -118,11 +146,14 @@ class FileService extends ChangeNotifier {
       );
     }
 
-    _importedDocuments = (_prefs.getStringList(_keyImportedDocuments) ?? const [])
-        .map((raw) => StorageDocument.fromJson(
-              jsonDecode(raw) as Map<String, dynamic>,
-            ))
-        .toList();
+    _importedDocuments =
+        (_prefs.getStringList(_keyImportedDocuments) ?? const [])
+            .map(
+              (raw) => StorageDocument.fromJson(
+                jsonDecode(raw) as Map<String, dynamic>,
+              ),
+            )
+            .toList();
   }
 
   Future<bool> requestPermissions(SettingsProvider settings) async {
@@ -143,8 +174,9 @@ class FileService extends ChangeNotifier {
       permissions.map((permission) => permission.request()),
     );
 
-    final anyGranted =
-        results.any((status) => status.isGranted || status.isLimited);
+    final anyGranted = results.any(
+      (status) => status.isGranted || status.isLimited,
+    );
     _permissionDenied = !anyGranted;
     notifyListeners();
     return anyGranted;
@@ -194,9 +226,7 @@ class FileService extends ChangeNotifier {
         .where((document) => !retainedUris.contains(document.uri))
         .toList();
 
-    await _releasePersistedPermissions(
-      removed.map((document) => document.uri),
-    );
+    await _releasePersistedPermissions(removed.map((document) => document.uri));
 
     _importedDocuments = _importedDocuments
         .where((document) => retainedUris.contains(document.uri))
@@ -209,6 +239,8 @@ class FileService extends ChangeNotifier {
     SettingsProvider settings, {
     DateTime? since,
     bool updateCache = false,
+    ReviewMode reviewMode = const ReviewMode.recent(),
+    DatabaseService? db,
   }) async {
     if (_cachedSummary != null && _items.isEmpty) {
       _isBackgroundScanning = true;
@@ -244,9 +276,42 @@ class FileService extends ChangeNotifier {
         }),
       );
 
-      found.sort((a, b) => b.date.compareTo(a.date));
-      _items = _dedupe(found);
+      final deduped = _dedupe(found);
+      await _indexScannedFiles(deduped, db);
+      if (reviewMode.type == ReviewModeType.duplicates) {
+        _duplicateGroups = await _filterDismissedGroups(
+          await _duplicateCandidateService.findExactPhotoGroups(deduped),
+          ReviewModeType.duplicates,
+          db,
+          (group) => group.id,
+        );
+        _burstGroups = const [];
+      } else if (reviewMode.type == ReviewModeType.bursts) {
+        _burstGroups = await _filterDismissedGroups(
+          _burstCandidateService.findPhotoBurstGroups(deduped),
+          ReviewModeType.bursts,
+          db,
+          (group) => group.id,
+        );
+        _duplicateGroups = const [];
+      } else {
+        _duplicateGroups = const [];
+        _burstGroups = const [];
+      }
+
+      final modeFiltered = switch (reviewMode.type) {
+        ReviewModeType.duplicates => [
+          for (final group in _duplicateGroups) ...group.reviewItems,
+        ],
+        ReviewModeType.bursts => [
+          for (final group in _burstGroups) ...group.reviewItems,
+        ],
+        _ => filterReviewItemsForMode(deduped, reviewMode),
+      };
+      _items = await _applyDecisionMemory(modeFiltered, reviewMode, db);
     } catch (_) {
+      _duplicateGroups = const [];
+      _burstGroups = const [];
       _items = found;
     } finally {
       if (updateCache) {
@@ -258,6 +323,143 @@ class FileService extends ChangeNotifier {
       _resetTransientScanState();
       notifyListeners();
     }
+  }
+
+  Future<List<T>> _filterDismissedGroups<T>(
+    List<T> groups,
+    ReviewModeType modeType,
+    DatabaseService? db,
+    String Function(T group) keyForGroup,
+  ) async {
+    if (db == null || groups.isEmpty) return groups;
+
+    try {
+      final dismissed = await db.getDismissedReviewGroupKeys(modeType.name);
+      if (dismissed.isEmpty) return groups;
+      return groups
+          .where((group) => !dismissed.contains(keyForGroup(group)))
+          .toList();
+    } catch (_) {
+      return groups;
+    }
+  }
+
+  Future<void> dismissReviewGroup({
+    required ReviewModeType modeType,
+    required String groupId,
+    required DatabaseService db,
+  }) async {
+    if (!_isReviewGroupMode(modeType)) return;
+
+    await db.upsertReviewGroupDismissal(
+      ReviewGroupDismissal(
+        groupKey: groupId,
+        mode: modeType.name,
+        dismissedAt: DateTime.now(),
+      ),
+    );
+
+    switch (modeType) {
+      case ReviewModeType.duplicates:
+        _duplicateGroups = _duplicateGroups
+            .where((group) => group.id != groupId)
+            .toList();
+        _items = _items
+            .where((item) => item.duplicateGroupId != groupId)
+            .toList();
+      case ReviewModeType.bursts:
+        _burstGroups = _burstGroups
+            .where((group) => group.id != groupId)
+            .toList();
+        _items = _items.where((item) => item.burstGroupId != groupId).toList();
+      case ReviewModeType.recent:
+      case ReviewModeType.largestFiles:
+      case ReviewModeType.screenshots:
+      case ReviewModeType.largeVideos:
+      case ReviewModeType.downloads:
+      case ReviewModeType.selectedFolders:
+      case ReviewModeType.folder:
+      case ReviewModeType.skipped:
+        return;
+    }
+
+    notifyListeners();
+  }
+
+  bool _isReviewGroupMode(ReviewModeType modeType) {
+    return switch (modeType) {
+      ReviewModeType.duplicates || ReviewModeType.bursts => true,
+      _ => false,
+    };
+  }
+
+  Future<void> _indexScannedFiles(
+    List<ReviewItem> items,
+    DatabaseService? db,
+  ) async {
+    if (db == null) return;
+
+    final now = DateTime.now();
+    final indexed = <IndexedFile>[];
+    for (final item in items) {
+      final key = FileIdentityService.keyFor(item);
+      if (key == null) continue;
+      indexed.add(
+        IndexedFile(
+          fileKey: key,
+          source: item.source.name,
+          fileType: item.type.name,
+          size: item.size,
+          modifiedAt: item.date,
+          indexedAt: now,
+          folderUri: item.folderUri,
+          mimeType: item.mimeType,
+        ),
+      );
+    }
+
+    if (indexed.isEmpty) return;
+
+    try {
+      await db.upsertIndexedFiles(indexed);
+    } catch (_) {
+      // The index is advisory; a failed write must not block review flows.
+    }
+  }
+
+  Future<List<ReviewItem>> _applyDecisionMemory(
+    List<ReviewItem> items,
+    ReviewMode reviewMode,
+    DatabaseService? db,
+  ) async {
+    if (db == null) return items;
+
+    final keysByItem = <ReviewItem, String>{};
+    for (final item in items) {
+      final key = FileIdentityService.keyFor(item);
+      if (key != null) keysByItem[item] = key;
+    }
+    if (keysByItem.isEmpty) {
+      return reviewMode.type == ReviewModeType.skipped ? const [] : items;
+    }
+
+    final Map<String, ReviewDecision> decisions;
+    try {
+      decisions = await db.getReviewDecisionsForKeys(keysByItem.values);
+    } catch (_) {
+      return items;
+    }
+
+    return items.where((item) {
+      final key = keysByItem[item];
+      if (key == null) return reviewMode.type != ReviewModeType.skipped;
+
+      final decision = decisions[key];
+      if (reviewMode.type == ReviewModeType.skipped) {
+        return decision?.type == ReviewDecisionType.later;
+      }
+      return decision == null;
+    }).toList();
   }
 
   Future<void> _persistImportedDocuments() async {
@@ -338,6 +540,7 @@ class FileService extends ChangeNotifier {
   ReviewItem _reviewItemFromDocument(
     StorageDocument document, {
     required ReviewItemSource source,
+    String? folderUri,
   }) {
     return ReviewItem(
       id: document.uri,
@@ -348,6 +551,7 @@ class FileService extends ChangeNotifier {
       date: document.modifiedAt,
       source: source,
       mimeType: document.mimeType,
+      folderUri: folderUri,
     );
   }
 
@@ -357,12 +561,17 @@ class FileService extends ChangeNotifier {
     if (mimeType.startsWith('video/')) return FileItemType.video;
 
     final extension = p.extension(document.name).toLowerCase();
-    if (const {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic'}
-        .contains(extension)) {
+    if (const {
+      '.jpg',
+      '.jpeg',
+      '.png',
+      '.gif',
+      '.webp',
+      '.heic',
+    }.contains(extension)) {
       return FileItemType.photo;
     }
-    if (const {'.mp4', '.mov', '.mkv', '.webm', '.avi'}
-        .contains(extension)) {
+    if (const {'.mp4', '.mov', '.mkv', '.webm', '.avi'}.contains(extension)) {
       return FileItemType.video;
     }
     return FileItemType.download;
@@ -408,8 +617,9 @@ class FileService extends ChangeNotifier {
         continue;
       }
 
-      final itemType =
-          asset.type == AssetType.video ? FileItemType.video : FileItemType.photo;
+      final itemType = asset.type == AssetType.video
+          ? FileItemType.video
+          : FileItemType.photo;
 
       result.add(
         ReviewItem(
@@ -420,6 +630,9 @@ class FileService extends ChangeNotifier {
           type: itemType,
           date: assetDate,
           source: ReviewItemSource.mediaLibrary,
+          durationSeconds: itemType == FileItemType.video && asset.duration > 0
+              ? asset.duration
+              : null,
         ),
       );
 
@@ -449,7 +662,7 @@ class FileService extends ChangeNotifier {
   }
 
   Future<List<ReviewItem>> _scanCustomFolders(
-    List<ScanFolderGrant> folders,
+    List<FolderProfile> folders,
     DateTime? since,
   ) async {
     final result = <ReviewItem>[];
@@ -457,7 +670,9 @@ class FileService extends ChangeNotifier {
     _updateProgress();
 
     for (final folder in folders) {
-      final documents = await _documentAccessService.listFolderFiles(folder.uri);
+      final documents = await _documentAccessService.listFolderFiles(
+        folder.uri,
+      );
       _totalEstimatedAssets += documents.length;
       _updateProgress();
 
@@ -472,6 +687,7 @@ class FileService extends ChangeNotifier {
           _reviewItemFromDocument(
             document,
             source: ReviewItemSource.customFolder,
+            folderUri: folder.uri,
           ),
         );
         _processedAssets++;

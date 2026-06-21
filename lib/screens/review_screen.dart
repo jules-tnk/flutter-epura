@@ -12,6 +12,7 @@ import '../providers/settings_provider.dart';
 import '../services/database_service.dart';
 import '../services/thumbnail_cache.dart';
 import '../theme/app_theme.dart';
+import '../widgets/epura_components.dart';
 import '../widgets/review_card.dart';
 
 enum LeaveReviewChoice { cancel, saveAndExit, discardAndExit }
@@ -77,18 +78,20 @@ class _ReviewScreenState extends State<ReviewScreen> {
     FileService fileService,
     ReviewCompletionResult result,
     SettingsProvider settings,
+    DatabaseService db,
   ) async {
     await fileService.resolveImportedDocumentsAfterReview(result);
-    await fileService.refreshAllFiles(settings);
+    await fileService.refreshAllFiles(settings, db: db);
   }
 
   void _syncAfterCompletionInBackground(
     FileService fileService,
     ReviewCompletionResult result,
     SettingsProvider settings,
+    DatabaseService db,
   ) {
     unawaited(
-      _syncAfterCompletion(fileService, result, settings).catchError((
+      _syncAfterCompletion(fileService, result, settings, db).catchError((
         Object error,
         StackTrace stackTrace,
       ) {
@@ -143,6 +146,14 @@ class _ReviewScreenState extends State<ReviewScreen> {
     }
   }
 
+  void _handleNeverAskAgain(ReviewProvider review) {
+    review.neverAskAgainCurrent();
+    _prefetchThumbnailWindow();
+    if (!review.isComplete) {
+      _swiperController.swipe(CardSwiperDirection.top);
+    }
+  }
+
   Widget _buildCompletionScreen(AppLocalizations l) {
     if (_deletionsTotal == 0) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -152,26 +163,30 @@ class _ReviewScreenState extends State<ReviewScreen> {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXL),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                l.cleaningUp,
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: AppTheme.spaceMD),
-              LinearProgressIndicator(
-                value: _completionProgress,
-                backgroundColor: Theme.of(context).dividerColor,
-                color: Theme.of(context).colorScheme.primary,
-                minHeight: 3,
-              ),
-              const SizedBox(height: AppTheme.spaceSM),
-              Text(
-                l.filesDeletedProgress(_deletionsDone, _deletionsTotal),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
+          child: EpuraPanel(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                EpuraIconBubble(icon: Icons.delete_sweep_outlined, size: 64),
+                const SizedBox(height: AppTheme.spaceMD),
+                Text(
+                  l.cleaningUp,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: AppTheme.spaceMD),
+                LinearProgressIndicator(
+                  value: _completionProgress,
+                  backgroundColor: Theme.of(context).dividerColor,
+                  color: Theme.of(context).colorScheme.primary,
+                  minHeight: 3,
+                ),
+                const SizedBox(height: AppTheme.spaceSM),
+                Text(
+                  l.filesRemovalProgress(_deletionsDone, _deletionsTotal),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -237,7 +252,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       },
     );
 
-    _syncAfterCompletionInBackground(fileService, result, settings);
+    _syncAfterCompletionInBackground(fileService, result, settings, db);
     if (!mounted) return;
     Navigator.pushReplacementNamed(context, EpuraApp.routeSummary);
   }
@@ -280,19 +295,20 @@ class _ReviewScreenState extends State<ReviewScreen> {
             icon: const Icon(Icons.arrow_back),
             onPressed: _promptLeaveReview,
           ),
-          title: Text(review.progress),
+          title: Text(l.review),
           centerTitle: true,
         ),
         body: SafeArea(
           child: Column(
             children: [
-              LinearProgressIndicator(
-                value: review.queue.isEmpty
-                    ? 0
-                    : review.currentIndex / review.queue.length,
-                backgroundColor: Theme.of(context).dividerColor,
-                color: Theme.of(context).colorScheme.primary,
-                minHeight: 3,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppTheme.spaceMD,
+                  AppTheme.spaceMD,
+                  AppTheme.spaceMD,
+                  AppTheme.spaceXS,
+                ),
+                child: _ReviewStatusPanel(review: review, localizations: l),
               ),
               if (review.lastFailedDeletionCount > 0)
                 _buildDeletionFailureBanner(
@@ -302,10 +318,16 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.all(AppTheme.spaceMD),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.spaceMD,
+                    AppTheme.spaceXS,
+                    AppTheme.spaceMD,
+                    AppTheme.spaceXS,
+                  ),
                   child: CardSwiper(
                     controller: _swiperController,
                     cardsCount: review.queue.length,
+                    padding: EdgeInsets.zero,
                     initialIndex: review.currentIndex,
                     numberOfCardsDisplayed: 1,
                     isLoop: false,
@@ -333,21 +355,81 @@ class _ReviewScreenState extends State<ReviewScreen> {
                             onDelete: () {
                               _swiperController.swipe(CardSwiperDirection.left);
                             },
+                            onNeverAskAgain: () => _handleNeverAskAgain(review),
                           );
                         },
                   ),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.only(bottom: AppTheme.spaceMD),
-                child: TextButton(
-                  onPressed: () => _handleSkip(review),
-                  child: Text(l.skipForLater),
+                padding: const EdgeInsets.fromLTRB(
+                  AppTheme.spaceMD,
+                  0,
+                  AppTheme.spaceMD,
+                  AppTheme.spaceSM,
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed: () => _handleSkip(review),
+                    icon: const Icon(Icons.schedule_outlined),
+                    label: Text(l.skipForLater),
+                  ),
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ReviewStatusPanel extends StatelessWidget {
+  final ReviewProvider review;
+  final AppLocalizations localizations;
+
+  const _ReviewStatusPanel({required this.review, required this.localizations});
+
+  @override
+  Widget build(BuildContext context) {
+    final total = review.queue.length;
+    final current = total == 0
+        ? 0
+        : (review.isComplete ? total : review.currentIndex + 1);
+    final progressValue = total == 0 ? 0.0 : review.currentIndex / total;
+
+    return EpuraPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          LinearProgressIndicator(
+            value: progressValue,
+            backgroundColor: Theme.of(context).dividerColor,
+            color: Theme.of(context).colorScheme.primary,
+            minHeight: 4,
+          ),
+          const SizedBox(height: AppTheme.spaceSM),
+          Wrap(
+            spacing: AppTheme.spaceSM,
+            runSpacing: AppTheme.spaceXS,
+            children: [
+              EpuraPill(
+                icon: Icons.rate_review_outlined,
+                label: localizations.reviewProgress(current, total),
+              ),
+              EpuraPill(
+                icon: Icons.delete_outline,
+                label: localizations.filesMarkedForDeletion(
+                  review.pendingDeletionCount,
+                ),
+                color: review.pendingDeletionCount > 0
+                    ? Theme.of(context).colorScheme.error
+                    : null,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

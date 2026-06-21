@@ -1,0 +1,46 @@
+flowchart TD
+    app["EpuraApp"]
+    home["HomeScreen"]
+    reviewScreen["ReviewScreen"]
+    groupScreens["Duplicate/Burst screens"]
+    settings["Settings/Privacy/Legal screens"]
+    stats["Stats/Summary screens"]
+
+    fileProvider["FileService"]
+    reviewProvider["ReviewProvider"]
+    settingsProvider["SettingsProvider"]
+    statsProvider["StatsProvider"]
+
+    db["DatabaseService"]
+    epuraDb["EpuraDatabase"]
+    documents["DocumentAccessService"]
+    mediaDeletion["MediaLibraryDeletionService"]
+    androidSettings["AndroidSettingsService"]
+    grouping["Duplicate/Burst services"]
+    notifications["NotificationService"]
+
+    app --> home
+    app --> reviewScreen
+    app --> groupScreens
+    app --> settings
+    app --> stats
+
+    home --> fileProvider
+    home --> reviewProvider
+    home --> settingsProvider
+    reviewScreen --> reviewProvider
+    groupScreens --> fileProvider
+    settings --> settingsProvider
+    stats --> statsProvider
+
+    fileProvider --> db
+    fileProvider --> documents
+    fileProvider --> grouping
+    reviewProvider --> db
+    reviewProvider --> documents
+    reviewProvider --> mediaDeletion
+    settingsProvider --> documents
+    settingsProvider --> notifications
+    statsProvider --> db
+    db --> epuraDb
+    settings --> androidSettings

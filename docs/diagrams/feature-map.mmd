@@ -1,0 +1,35 @@
+flowchart TD
+    epura["Epura"]
+    epura --> review["Review"]
+    epura --> safety["Safety and trust"]
+    epura --> insight["Storage insight"]
+    epura --> habit["Habits and stats"]
+    epura --> local["Local data"]
+
+    review --> recent["Recent"]
+    review --> largest["Largest files"]
+    review --> screenshots["Screenshots"]
+    review --> videos["Large videos"]
+    review --> downloads["Downloads"]
+    review --> folders["Selected folders"]
+    review --> groups["Grouped review"]
+
+    groups --> duplicates["Exact duplicates"]
+    groups --> bursts["Bursts"]
+    groups --> skipped["Skipped items"]
+
+    safety --> confirmation["Final confirmation"]
+    safety --> trash["Android trash when available"]
+    safety --> failures["Failed-deletion reporting"]
+    safety --> privacy["Privacy and permissions center"]
+
+    insight --> scope["What Epura can review"]
+    insight --> androidSettings["Open Android storage settings"]
+    insight --> limits["What Epura cannot inspect"]
+
+    habit --> reminders["Daily or weekly reminders"]
+    habit --> stats["Stats and streaks"]
+
+    local --> drift["Drift local SQLite"]
+    local --> prefs["SharedPreferences"]
+    local --> cache["Thumbnail and scan cache"]

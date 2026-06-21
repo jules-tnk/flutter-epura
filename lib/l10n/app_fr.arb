@@ -1,7 +1,18 @@
 {
   "@@locale": "fr",
 
-  "appTitle": "epura",
+  "appTitle": "Epura",
+  "home": "Accueil",
+  "review": "Revue",
+  "localOnlyBadge": "Local uniquement",
+  "takeControlOfSpace": "Reprenez le contrôle de votre espace",
+  "allTime": "Depuis le début",
+  "thisMonth": "Ce mois-ci",
+  "thisSession": "Cette session",
+  "daysInARow": "jours de suite",
+  "readyToReview": "Prêt à passer en revue",
+  "reviewModesAvailable": "{count, plural, =1{1 mode de revue disponible} other{{count} modes de revue disponibles}}",
+  "resumeReview": "Reprendre la revue",
 
   "notificationTitle": "C'est l'heure du tri !",
   "notificationBody": "Vous avez de nouveaux fichiers à examiner",
@@ -18,17 +29,117 @@
   "downloads": "Téléchargements",
   "startReview": "Commencer l'examen",
   "stats": "Statistiques",
-
+  "reviewModes": "Modes de revue",
+  "reviewModeRecent": "Récents",
+  "reviewModeLargestFiles": "Plus gros",
+  "reviewModeScreenshots": "Captures",
+  "reviewModeLargeVideos": "Grandes vidéos",
+  "reviewModeBursts": "Rafales",
+  "reviewModeDownloads": "Téléchargements",
+  "reviewModeSelectedFolders": "Dossiers sélectionnés",
+  "reviewModeFolder": "Dossier : {name}",
+  "reviewModeDuplicates": "Doublons",
+  "reviewModeSkipped": "Passés",
+  "reviewModeMore": "Plus de modes",
+  "reviewModeSheetTitle": "Choisir un mode de revue",
+  "noFilesForMode": "Aucun fichier trouvé pour ce mode de revue.",
+  "exactDuplicateGroups": "Groupes de doublons exacts",
+  "exactCopies": "{count} copies exactes",
+  "@exactCopies": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "recoverableStorage": "{size} récupérables",
+  "@recoverableStorage": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "reviewGroup": "Examiner le groupe",
+  "reviewGroupCount": "{count, plural, =1{1 groupe} other{{count} groupes}}",
+  "compareGroup": "Comparer le groupe",
+  "comparePhotos": "Comparer les photos",
+  "compareShots": "Comparer les prises",
+  "groupComparePosition": "{index} sur {count}",
+  "@groupComparePosition": {
+    "placeholders": {
+      "index": { "type": "int" },
+      "count": { "type": "int" }
+    }
+  },
+  "dismissGroup": "Masquer le groupe",
+  "groupDismissed": "Groupe masqué.",
+  "noDuplicateGroups": "Aucun groupe de doublons exacts trouvé.",
+  "photoBursts": "Rafales photo",
+  "burstShots": "{count} prises",
+  "@burstShots": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "burstSpan": "{seconds}s d'écart",
+  "@burstSpan": {
+    "placeholders": {
+      "seconds": { "type": "int" }
+    }
+  },
+  "burstTotalStorage": "{size} au total",
+  "@burstTotalStorage": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "groupTotalStorage": "{size} au total",
+  "@groupTotalStorage": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "reviewBurst": "Examiner la rafale",
+  "noBurstGroups": "Aucune rafale photo trouvée.",
   "leaveReview": "Quitter l'examen ?",
   "leaveReviewMessage": "Vous pouvez enregistrer votre progression ou abandonner toutes les modifications.",
   "cancel": "Annuler",
+  "save": "Enregistrer",
   "saveAndExit": "Enregistrer et quitter",
   "discardAndExit": "Abandonner et quitter",
   "skipForLater": "Passer pour plus tard",
+  "neverAskAgain": "Ne plus demander",
+  "reviewProgress": "{current}/{total}",
+  "@reviewProgress": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "filesMarkedForDeletion": "Supprimer {count}",
+  "@filesMarkedForDeletion": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
 
   "photo": "Photo",
   "video": "Vidéo",
   "download": "Téléchargement",
+  "openPreview": "Ouvrir l'aperçu",
+  "duplicateCandidate": "Doublon {index} sur {count}",
+  "@duplicateCandidate": {
+    "placeholders": {
+      "index": { "type": "int" },
+      "count": { "type": "int" }
+    }
+  },
+  "duplicateCandidateHelp": "Même empreinte locale et même taille. Vérifiez chaque copie ; Epura ne supprime rien automatiquement.",
+  "burstCandidate": "Rafale {index} sur {count}",
+  "@burstCandidate": {
+    "placeholders": {
+      "index": { "type": "int" },
+      "count": { "type": "int" }
+    }
+  },
+  "burstCandidateHelp": "Photos prises à quelques secondes d'écart. Examinez chaque prise ; Epura ne choisit pas automatiquement la meilleure.",
   "delete": "Supprimer",
   "keep": "Garder",
 
@@ -38,6 +149,10 @@
   "skipped": "Passés",
   "storageFreed": "Espace libéré",
   "motivationalMessage": "Bravo, votre appareil est bien rangé !",
+  "reviewPromptTitle": "Vous aimez Epura ?",
+  "reviewPromptBody": "Une note sur le Play Store aide d'autres personnes à trouver une app de nettoyage privée. Epura ne demande qu'après des sessions réussies.",
+  "rateEpura": "Noter Epura",
+  "notNow": "Pas maintenant",
   "viewStats": "Voir les statistiques",
   "goHome": "Retour à l'accueil",
 
@@ -56,8 +171,39 @@
   "streakDays": "{count} jours",
   "filesReviewed": "Fichiers examinés",
   "totalReviewed": "Total examinés",
+  "sessions": "Sessions",
   "sessionHistory": "Historique des sessions",
+  "recentSessions": "Sessions récentes",
   "filesReviewedCount": "{count} fichiers examinés",
+  "monthlyReviewProgress": "Progression de revue ce mois-ci",
+  "storageFreedThisMonth": "Espace libéré ce mois-ci",
+  "storageInsightTitle": "Analyse du stockage",
+  "storageInsightStatsEntryBody": "Voir ce qu'Epura peut examiner et ce qu'Android gère.",
+  "storageInsightEpuraCanReview": "Epura peut examiner",
+  "storageInsightEpuraCanReviewBody": "Cela couvre seulement le stockage choisi pour l'analyse : photos, vidéos, dossiers sélectionnés et fichiers importés.",
+  "storageInsightFilesAvailable": "{count} fichiers dans le périmètre",
+  "storageInsightAlreadyFreed": "Déjà libéré",
+  "storageInsightPhotosVideos": "Photos et vidéos",
+  "storageInsightGuideTitle": "Qu'est-ce qui prend de la place ?",
+  "storageInsightPhotosVideosBody": "Les médias grossissent souvent le plus vite. Epura aide à examiner les photos et vidéos qu'Android lui laisse voir.",
+  "storageInsightDownloadsBody": "Les téléchargements importés et dossiers sélectionnés restent locaux et sont examinés seulement après votre choix.",
+  "storageInsightAppCache": "Cache des apps",
+  "storageInsightAppCacheBody": "Android gère le cache des autres apps. Epura ne le vide pas et n'inspecte pas vos apps installées.",
+  "storageInsightCloudCopies": "Copies cloud",
+  "storageInsightCloudCopiesBody": "Un fichier peut sembler sauvegardé tout en occupant l'appareil. Vérifiez l'app d'origine avant de supprimer un élément important.",
+  "storageInsightSystemStorage": "Stockage système",
+  "storageInsightSystemStorageBody": "Les fichiers système et données cachées des apps relèvent des paramètres Android, pas du tri Epura.",
+  "storageInsightPlanTitle": "Plan de nettoyage",
+  "storageInsightPlan2MinuteTitle": "Nettoyage en 2 minutes",
+  "storageInsightPlan2MinuteBody": "Examinez les captures récentes et les images ponctuelles évidentes.",
+  "storageInsightPlan5MinuteTitle": "Nettoyage en 5 minutes",
+  "storageInsightPlan5MinuteBody": "Examinez d'abord les grandes vidéos et les groupes de doublons exacts.",
+  "storageInsightPlanWeeklyTitle": "Nettoyage hebdomadaire",
+  "storageInsightPlanWeeklyBody": "Examinez les nouveaux fichiers depuis la dernière session avant que la file grandisse.",
+  "storageInsightPlanMonthlyTitle": "Nettoyage mensuel",
+  "storageInsightPlanMonthlyBody": "Importez les téléchargements ou rescanez les dossiers sélectionnés qui demandent un tri.",
+  "openAndroidStorageSettings": "Ouvrir les paramètres de stockage Android",
+  "androidStorageSettingsUnavailable": "Les paramètres de stockage Android ne sont pas disponibles sur cet appareil.",
 
   "allClean": "Tout est propre !",
   "noFilesToReview": "Aucun fichier à examiner pour le moment. Revenez plus tard.",
@@ -100,8 +246,8 @@
   "scanningPhotosAndVideos": "Scan des photos et vidéos...",
   "scanningCustomFolders": "Scan des dossiers sélectionnés...",
   "cleaningUp": "Nettoyage en cours...",
-  "filesDeletedProgress": "{done} / {total} fichiers supprimés",
-  "@filesDeletedProgress": {
+  "filesRemovalProgress": "{done} / {total} fichiers traités",
+  "@filesRemovalProgress": {
     "placeholders": {
       "done": { "type": "int" },
       "total": { "type": "int" }
@@ -111,17 +257,50 @@
   "startingReview": "Démarrage de l'examen...",
   "scanning": "Scan en cours...",
   "addDownloadedFiles": "Ajouter des fichiers téléchargés",
+  "downloadsInboxTitle": "Boîte de téléchargements",
+  "downloadsInboxSummary": "{count, plural, =1{1 fichier importé - {size}} other{{count} fichiers importés - {size}}}",
+  "@downloadsInboxSummary": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "size": { "type": "String" }
+    }
+  },
+  "downloadsInboxBody": "Android vous demande de choisir les téléchargements manuellement. Epura examine seulement les fichiers choisis.",
+  "reviewDownloads": "Examiner les téléchargements",
+  "filterDownloads": "Filtrer",
+  "downloadFilterTitle": "Examiner les téléchargements par type",
+  "downloadFilterAll": "Tous les téléchargements",
+  "downloadFilterPdfs": "PDF",
+  "downloadFilterArchives": "Archives",
+  "downloadFilterApks": "APK",
+  "downloadFilterAudio": "Audio",
+  "downloadFilterDocuments": "Documents",
+  "downloadFilterOther": "Autres",
+  "downloadFilterOption": "{label} ({count})",
+  "@downloadFilterOption": {
+    "placeholders": {
+      "label": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+  "addMoreDownloads": "Ajouter",
   "clearImportedFiles": "Effacer les fichiers importés ({count})",
-  "importedFilesAdded": "{count} fichiers ajoutés à votre file d'examen.",
+  "importedFilesAdded": "{count, plural, =1{1 fichier ajouté à votre file d'examen.} other{{count} fichiers ajoutés à votre file d'examen.}}",
   "importedFilesCleared": "Les fichiers importés ont été retirés de la file d'examen.",
   "customFoldersToScan": "Dossiers personnalisés à scanner",
   "addCustomFolder": "Ajouter un dossier",
   "customFoldersHelp": "Choisissez les dossiers qu'Epura doit rescanner automatiquement. L'accès est limité aux dossiers que vous sélectionnez explicitement.",
+  "renameFolder": "Renommer le dossier",
+  "folderNickname": "Nom du dossier",
+  "folderLastReviewed": "Dernière revue : {date}",
   "noCustomFolders": "Aucun dossier personnalisé sélectionné. Par défaut, Epura ne scanne que les photos et les vidéos.",
   "folderAdded": "{name} ajouté aux scans de dossiers.",
   "folderRemoved": "{name} retiré des scans de dossiers.",
   "downloadFolderSelectionHint": "Android 11+ n'autorise pas les applications à sélectionner le dossier Téléchargements comme accès de dossier réutilisable. Utilisez plutôt « Ajouter des fichiers téléchargés » sur l'écran d'accueil.",
   "filesCouldNotBeDeleted": "{count} fichiers n'ont pas pu être supprimés et ont été conservés sur votre appareil.",
+  "filesMovedToTrash": "{count, plural, =1{1 fichier déplacé vers la corbeille Android. Vous pourrez peut-être le restaurer depuis votre galerie jusqu'à ce qu'Android vide la corbeille.} other{{count} fichiers déplacés vers la corbeille Android. Vous pourrez peut-être les restaurer depuis votre galerie jusqu'à ce qu'Android vide la corbeille.}}",
+  "filesPermanentlyDeleted": "{count, plural, =1{1 fichier a été supprimé définitivement.} other{{count} fichiers ont été supprimés définitivement.}}",
+  "trashStorageFreedNote": "L'espace libéré ne compte que les fichiers supprimés définitivement. Les médias dans la corbeille peuvent encore occuper de l'espace jusqu'à ce que la corbeille soit vidée.",
 
   "appearance": "Apparence",
   "light": "Clair",
@@ -131,6 +310,46 @@
   "privacyPolicy": "Politique de confidentialité",
   "termsOfService": "Conditions d'utilisation",
   "viewOnline": "Voir en ligne",
+  "privacyAndControl": "Confidentialité et contrôle",
+  "privacyPermissions": "Confidentialité et autorisations",
+  "privacyPermissionsSubtitle": "Voyez ce qu'Epura peut utiliser et effacez l'historique local.",
+  "privacyReceipt": "Reçu de confidentialité",
+  "noAccount": "Aucun compte",
+  "noCloudSync": "Aucune synchronisation cloud",
+  "noAnalyticsTracking": "Aucune analyse ni suivi",
+  "localOnlyProcessing": "Tout le traitement reste sur cet appareil",
+  "permissionsEpuraUses": "Autorisations utilisées par Epura",
+  "mediaPermissionTitle": "Photos et vidéos",
+  "mediaPermissionBody": "Utilisées uniquement pour afficher les médias choisis dans votre revue.",
+  "selectedFoldersPermissionTitle": "Dossiers et fichiers sélectionnés",
+  "selectedFoldersPermissionBody": "Utilisés uniquement pour les dossiers ou fichiers téléchargés que vous choisissez avec le sélecteur Android.",
+  "notificationsPermissionTitle": "Notifications",
+  "notificationsPermissionBody": "Utilisées uniquement pour les rappels que vous activez.",
+  "currentLocalAccess": "Accès local actuel",
+  "selectedFolders": "Dossiers sélectionnés",
+  "noneSelected": "Aucun",
+  "selectedFolderCount": "{count} sélectionné(s)",
+  "@selectedFolderCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "enabled": "Activé",
+  "disabled": "Désactivé",
+  "localHistory": "Historique local",
+  "noLocalReviewHistory": "Aucun historique local",
+  "localReviewSessionCount": "{count, plural, =1{1 session locale} other{{count} sessions locales}}",
+  "@localReviewSessionCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "clearHistoryExplanation": "Cela efface les statistiques de revue d'Epura, le repère de dernière revue, la file des fichiers passés, les décisions « ne plus demander », les groupes masqués et l'index local des fichiers. Cela ne supprime pas vos fichiers, ne révoque pas les dossiers sélectionnés et ne change pas vos réglages de scan.",
+  "clearEpuraHistory": "Effacer l'historique Epura",
+  "clearHistoryTitle": "Effacer l'historique local ?",
+  "clearHistoryMessage": "Epura effacera les sessions de revue, les statistiques, le repère de dernière revue, la file des fichiers passés, les décisions « ne plus demander », les groupes masqués et l'index local des fichiers. Vos fichiers et dossiers sélectionnés resteront inchangés.",
+  "clearHistoryConfirm": "Effacer l'historique",
+  "historyClearedMessage": "Historique Epura effacé. Vos fichiers n'ont pas été modifiés.",
 
   "welcomeToEpura": "Bienvenue sur Epura",
   "termsBottomSheetSummary": "Epura fonctionne entièrement sur votre appareil. Aucune donnée n'est collectée, transmise ou partagée. En continuant, vous acceptez notre politique de confidentialité et nos conditions d'utilisation.",

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -5,19 +7,25 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../app.dart';
 import '../l10n/app_localizations.dart';
+import '../models/download_file_category.dart';
 import '../models/review_item.dart';
+import '../models/review_mode.dart';
 import '../providers/file_service.dart';
-import '../providers/review_provider.dart';
 import '../providers/settings_provider.dart';
+import '../providers/stats_provider.dart';
+import '../services/database_service.dart';
 import '../services/notification_service.dart';
+import '../services/review_flow_launcher.dart';
 import '../theme/app_theme.dart';
 import '../utils/format_utils.dart';
-import '../widgets/empty_state.dart';
-import '../widgets/lookback_picker.dart';
-import '../services/thumbnail_cache.dart';
+import '../widgets/epura_components.dart';
+import '../widgets/review_mode_catalog.dart';
+import '../widgets/review_mode_grid.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final bool embedded;
+
+  const HomeScreen({super.key, this.embedded = false});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -37,7 +45,8 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _showTermsIfNeeded();
-      _scanFiles();
+      unawaited(_scanFiles());
+      unawaited(_loadStats());
       _requestNotifPermissionIfFirstRun();
     });
   }
@@ -100,28 +109,25 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _scanFiles() async {
     final fileService = context.read<FileService>();
     final settings = context.read<SettingsProvider>();
+    final db = context.read<DatabaseService>();
     await fileService.requestPermissions(settings);
-    await fileService.refreshAllFiles(settings);
+    await fileService.refreshAllFiles(settings, db: db);
   }
 
-  List<ReviewItem> _firstPreviewableMedia(List<ReviewItem> items) {
-    return items
-        .where(
-          (item) =>
-              item.source == ReviewItemSource.mediaLibrary &&
-              item.type != FileItemType.download,
-        )
-        .take(1)
-        .toList();
+  Future<void> _loadStats() async {
+    await context.read<StatsProvider>().loadStats(
+      context.read<DatabaseService>(),
+    );
   }
 
   Future<void> _importDownloadedFiles() async {
     final fileService = context.read<FileService>();
     final settings = context.read<SettingsProvider>();
+    final db = context.read<DatabaseService>();
     final importedCount = await fileService.importDownloadDocuments();
     if (!mounted || importedCount == 0) return;
 
-    await fileService.refreshAllFiles(settings);
+    await fileService.refreshAllFiles(settings, db: db);
     if (!mounted) return;
 
     _showMessage(
@@ -132,54 +138,160 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _clearImportedFiles() async {
     final fileService = context.read<FileService>();
     final settings = context.read<SettingsProvider>();
+    final db = context.read<DatabaseService>();
     await fileService.clearImportedDocuments();
-    await fileService.refreshAllFiles(settings);
+    await fileService.refreshAllFiles(settings, db: db);
     if (!mounted) return;
 
     _showMessage(AppLocalizations.of(context)!.importedFilesCleared);
   }
 
-  Future<void> _startReview() async {
-    final settings = context.read<SettingsProvider>();
-    final fileService = context.read<FileService>();
-    final reviewProvider = context.read<ReviewProvider>();
-    final navigator = Navigator.of(context);
+  Future<void> _reviewImportedFiles() {
+    return _startReview(reviewMode: const ReviewMode.downloads());
+  }
 
-    final result = await LookbackPicker.show(
-      context,
-      lastReviewTimestamp: settings.lastReviewTimestamp,
-    );
-    if (result == null || !mounted) return;
+  List<ReviewItem> _importedDocumentItems(FileService fileService) {
+    return fileService.items
+        .where((item) => item.source == ReviewItemSource.importedDocument)
+        .toList();
+  }
 
-    setState(() => _isPreparingReview = true);
+  Map<DownloadFileCategory, int> _downloadCategoryCounts(
+    List<ReviewItem> items,
+  ) {
+    final counts = {
+      for (final category in DownloadFileCategory.values) category: 0,
+    };
 
-    try {
-      await fileService.requestPermissions(settings);
-      if (!mounted) return;
-
-      await fileService.scanForNewFiles(settings, since: result.since);
-      if (!mounted) return;
-
-      final scannedItems = fileService.items;
-      if (scannedItems.isEmpty) {
-        setState(() => _isPreparingReview = false);
-        return;
-      }
-
-      final firstPreviewable = _firstPreviewableMedia(scannedItems);
-      if (firstPreviewable.isNotEmpty) {
-        await context.read<ThumbnailCache>().prefetch(firstPreviewable);
-      }
-      if (!mounted) return;
-
-      reviewProvider.startReview(scannedItems);
-      setState(() => _isPreparingReview = false);
-      navigator.pushNamed(EpuraApp.routeReview);
-    } catch (_) {
-      if (mounted) {
-        setState(() => _isPreparingReview = false);
-      }
+    for (final item in items) {
+      final category = downloadFileCategoryForItem(item);
+      counts[category] = counts[category]! + 1;
     }
+
+    return counts;
+  }
+
+  String _downloadCategoryLabel(
+    AppLocalizations l,
+    DownloadFileCategory category,
+  ) {
+    switch (category) {
+      case DownloadFileCategory.pdf:
+        return l.downloadFilterPdfs;
+      case DownloadFileCategory.archives:
+        return l.downloadFilterArchives;
+      case DownloadFileCategory.apk:
+        return l.downloadFilterApks;
+      case DownloadFileCategory.audio:
+        return l.downloadFilterAudio;
+      case DownloadFileCategory.documents:
+        return l.downloadFilterDocuments;
+      case DownloadFileCategory.other:
+        return l.downloadFilterOther;
+    }
+  }
+
+  IconData _downloadCategoryIcon(DownloadFileCategory category) {
+    switch (category) {
+      case DownloadFileCategory.pdf:
+        return Icons.picture_as_pdf_outlined;
+      case DownloadFileCategory.archives:
+        return Icons.folder_zip_outlined;
+      case DownloadFileCategory.apk:
+        return Icons.android_outlined;
+      case DownloadFileCategory.audio:
+        return Icons.audio_file_outlined;
+      case DownloadFileCategory.documents:
+        return Icons.description_outlined;
+      case DownloadFileCategory.other:
+        return Icons.insert_drive_file_outlined;
+    }
+  }
+
+  Future<void> _showDownloadFilterSheet(FileService fileService) async {
+    final importedItems = _importedDocumentItems(fileService);
+    if (importedItems.isEmpty) return;
+
+    final l = AppLocalizations.of(context)!;
+    final counts = _downloadCategoryCounts(importedItems);
+    final selectedMode = await showModalBottomSheet<ReviewMode>(
+      context: context,
+      builder: (sheetContext) {
+        final filterRows = [
+          EpuraSettingsRow(
+            icon: Icons.download_outlined,
+            title: l.downloadFilterOption(
+              l.downloadFilterAll,
+              importedItems.length,
+            ),
+            onTap: () =>
+                Navigator.pop(sheetContext, const ReviewMode.downloads()),
+          ),
+          for (final entry in counts.entries)
+            if (entry.value > 0)
+              EpuraSettingsRow(
+                icon: _downloadCategoryIcon(entry.key),
+                title: l.downloadFilterOption(
+                  _downloadCategoryLabel(l, entry.key),
+                  entry.value,
+                ),
+                onTap: () => Navigator.pop(
+                  sheetContext,
+                  ReviewMode.downloads(category: entry.key),
+                ),
+              ),
+        ];
+
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(AppTheme.spaceLG),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l.downloadFilterTitle,
+                  style: Theme.of(sheetContext).textTheme.titleLarge,
+                ),
+                const SizedBox(height: AppTheme.spaceSM),
+                EpuraPanel(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      for (
+                        var index = 0;
+                        index < filterRows.length;
+                        index++
+                      ) ...[
+                        filterRows[index],
+                        if (index < filterRows.length - 1)
+                          const Divider(height: 1),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (selectedMode == null || !mounted) return;
+    await _startReview(reviewMode: selectedMode);
+  }
+
+  Future<void> _startReview({
+    ReviewMode reviewMode = const ReviewMode.recent(),
+  }) {
+    return ReviewFlowLauncher(
+      context: context,
+      isMounted: () => mounted,
+      setPreparing: (preparing) {
+        if (mounted) setState(() => _isPreparingReview = preparing);
+      },
+      showMessage: _showMessage,
+    ).start(reviewMode: reviewMode);
   }
 
   Future<void> _requestNotifPermissionIfFirstRun() async {
@@ -208,86 +320,177 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget _buildScanProgressCard(
+  Widget _buildScanProgressContent(
     BuildContext context,
     FileService fileService,
     AppLocalizations l,
+    int availableModeCount,
   ) {
     final hasTotal = fileService.totalEstimatedAssets > 0;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spaceMD),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            Text(
-              l.preparingReview.toUpperCase(),
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: context.appColors.textTertiary,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(height: AppTheme.spaceSM),
-            if (hasTotal) ...[
-              RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: '${fileService.processedAssets}',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                    TextSpan(
-                      text: ' / ${fileService.totalEstimatedAssets}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        color: context.appColors.textTertiary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                l.filesScanned,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: context.appColors.textTertiary,
-                ),
-              ),
-              const SizedBox(height: AppTheme.spaceMD),
-              LinearProgressIndicator(
-                value: fileService.scanProgress,
-                backgroundColor: Theme.of(context).dividerColor,
-                color: Theme.of(context).colorScheme.primary,
-                minHeight: 3,
-              ),
-            ] else ...[
-              const SizedBox(height: AppTheme.spaceMD),
-              const LinearProgressIndicator(),
-            ],
-            const SizedBox(height: AppTheme.spaceSM),
-            Text(
-              hasTotal ? _scanPhaseText(l, fileService.scanPhase) : l.scanning,
-              style: TextStyle(
-                fontSize: 11,
-                color: context.appColors.textTertiary,
+            const EpuraIconBubble(icon: Icons.autorenew_outlined),
+            const SizedBox(width: AppTheme.spaceMD),
+            Expanded(
+              child: Text(
+                l.preparingReview,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
           ],
         ),
+        const SizedBox(height: AppTheme.spaceMD),
+        if (hasTotal) ...[
+          Text(
+            '${fileService.processedAssets} / ${fileService.totalEstimatedAssets}',
+            style: Theme.of(context).textTheme.headlineMedium,
+          ),
+          const SizedBox(height: 2),
+          Text(l.filesScanned, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: AppTheme.spaceMD),
+          LinearProgressIndicator(
+            value: fileService.scanProgress,
+            backgroundColor: Theme.of(context).dividerColor,
+            color: Theme.of(context).colorScheme.primary,
+            minHeight: 4,
+          ),
+        ] else ...[
+          const LinearProgressIndicator(),
+        ],
+        const SizedBox(height: AppTheme.spaceSM),
+        Text(
+          hasTotal ? _scanPhaseText(l, fileService.scanPhase) : l.scanning,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: context.appColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: AppTheme.spaceSM),
+        _buildModeAvailabilityPill(l, availableModeCount),
+      ],
+    );
+  }
+
+  Widget _buildHistoricalStatsStrip(AppLocalizations l, StatsProvider stats) {
+    return EpuraMetricStrip(
+      framed: false,
+      padding: EdgeInsets.zero,
+      metrics: [
+        EpuraMetric(
+          icon: Icons.storage_outlined,
+          label: l.storageFreed,
+          value: formatBytes(stats.totalBytesFreed),
+          helper: l.allTime,
+        ),
+        EpuraMetric(
+          icon: Icons.description_outlined,
+          label: l.filesReviewed,
+          value: '${stats.totalFilesReviewed}',
+          helper: l.allTime,
+        ),
+        EpuraMetric(
+          icon: Icons.local_fire_department_outlined,
+          label: l.streak,
+          value: '${stats.streak}',
+          helper: l.daysInARow,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOverviewPanel(
+    BuildContext context,
+    AppLocalizations l, {
+    required StatsProvider stats,
+    required Widget readinessContent,
+  }) {
+    return EpuraPanel(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTheme.spaceSM,
+              vertical: AppTheme.spaceMD,
+            ),
+            child: _buildHistoricalStatsStrip(l, stats),
+          ),
+          Divider(height: 1, color: Theme.of(context).dividerColor),
+          Padding(
+            padding: const EdgeInsets.all(AppTheme.spaceMD),
+            child: readinessContent,
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildReviewSummaryCard(
+  Widget _buildModeAvailabilityPill(
+    AppLocalizations l,
+    int availableModeCount,
+  ) {
+    return EpuraPill(
+      icon: Icons.dashboard_customize_outlined,
+      label: l.reviewModesAvailable(availableModeCount),
+    );
+  }
+
+  Widget _buildAccessContent(
+    BuildContext context,
+    AppLocalizations l,
+    int availableModeCount,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.folder_off_outlined,
+              size: 44,
+              color: context.appColors.textTertiary,
+            ),
+            const SizedBox(width: AppTheme.spaceMD),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l.storageAccessNeeded,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: AppTheme.spaceXS),
+                  Text(
+                    l.storageAccessExplanation,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: context.appColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spaceSM),
+                  _buildModeAvailabilityPill(l, availableModeCount),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppTheme.spaceLG),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton(
+            onPressed: _scanFiles,
+            child: Text(l.grantAccess),
+          ),
+        ),
+        TextButton(onPressed: openAppSettings, child: Text(l.openSettings)),
+      ],
+    );
+  }
+
+  Widget _buildReviewSummaryContent(
     BuildContext context,
     AppLocalizations l, {
     required FileService fileService,
@@ -296,53 +499,202 @@ class _HomeScreenState extends State<HomeScreen> {
     required int photoCount,
     required int videoCount,
     required int downloadCount,
+    required int availableModeCount,
   }) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spaceMD),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (fileService.isBackgroundScanning || fileService.isLoading)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppTheme.spaceMD),
+            child: LinearProgressIndicator(
+              value: fileService.totalEstimatedAssets > 0
+                  ? fileService.scanProgress
+                  : null,
+              backgroundColor: Theme.of(context).dividerColor,
+              color: Theme.of(context).colorScheme.primary,
+              minHeight: 4,
+            ),
+          ),
+        Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (fileService.isBackgroundScanning || fileService.isLoading)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppTheme.spaceSM),
-                child: LinearProgressIndicator(
-                  value: fileService.totalEstimatedAssets > 0
-                      ? fileService.scanProgress
-                      : null,
-                  backgroundColor: Theme.of(context).dividerColor,
-                  color: Theme.of(context).colorScheme.primary,
-                  minHeight: 3,
-                ),
+            const EpuraIconBubble(icon: Icons.fact_check_outlined),
+            const SizedBox(width: AppTheme.spaceMD),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l.readyToReview,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: AppTheme.spaceXS),
+                  Text(
+                    '${l.filesToReview(totalCount)} · ${formatBytes(totalSize)}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: context.appColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spaceSM),
+                  _buildModeAvailabilityPill(l, availableModeCount),
+                ],
               ),
-            Text(
-              l.filesToReview(totalCount),
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: AppTheme.spaceSM),
-            Text(
-              formatBytes(totalSize),
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const Divider(height: AppTheme.spaceLG),
-            _SummaryRow(
-              icon: Icons.photo_outlined,
-              label: l.photos,
-              count: photoCount,
-            ),
-            _SummaryRow(
-              icon: Icons.videocam_outlined,
-              label: l.videos,
-              count: videoCount,
-            ),
-            _SummaryRow(
-              icon: Icons.download_outlined,
-              label: l.downloads,
-              count: downloadCount,
             ),
           ],
         ),
+        const Divider(height: AppTheme.spaceLG),
+        _SummaryRow(
+          icon: Icons.photo_outlined,
+          label: l.photos,
+          count: photoCount,
+        ),
+        _SummaryRow(
+          icon: Icons.videocam_outlined,
+          label: l.videos,
+          count: videoCount,
+        ),
+        _SummaryRow(
+          icon: Icons.download_outlined,
+          label: l.downloads,
+          count: downloadCount,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyReadinessContent(
+    BuildContext context,
+    AppLocalizations l,
+    int availableModeCount,
+  ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const EpuraIconBubble(icon: Icons.check_circle_outline),
+        const SizedBox(width: AppTheme.spaceMD),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l.allClean, style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: AppTheme.spaceXS),
+              Text(
+                l.noFilesToReview,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: context.appColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spaceSM),
+              _buildModeAvailabilityPill(l, availableModeCount),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDownloadsInboxCard(
+    AppLocalizations l,
+    FileService fileService,
+    bool disabled,
+  ) {
+    return EpuraPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const EpuraIconBubble(icon: Icons.download_outlined),
+              const SizedBox(width: AppTheme.spaceMD),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l.downloadsInboxTitle,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: AppTheme.spaceXS),
+                    Text(
+                      l.downloadsInboxSummary(
+                        fileService.importedDocumentCount,
+                        formatBytes(fileService.importedDocumentTotalSize),
+                      ),
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTheme.spaceSM),
+          Text(
+            l.downloadsInboxBody,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: context.appColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: AppTheme.spaceMD),
+          Wrap(
+            spacing: AppTheme.spaceSM,
+            runSpacing: AppTheme.spaceXS,
+            children: [
+              OutlinedButton.icon(
+                onPressed: disabled ? null : _reviewImportedFiles,
+                icon: const Icon(Icons.rate_review_outlined),
+                label: Text(l.reviewDownloads),
+              ),
+              TextButton(
+                onPressed: disabled
+                    ? null
+                    : () => _showDownloadFilterSheet(fileService),
+                child: Text(l.filterDownloads),
+              ),
+              TextButton(
+                onPressed: disabled ? null : _importDownloadedFiles,
+                child: Text(l.addMoreDownloads),
+              ),
+              TextButton(
+                onPressed: disabled ? null : _clearImportedFiles,
+                child: Text(
+                  l.clearImportedFiles(fileService.importedDocumentCount),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImportDownloadsCard(AppLocalizations l, bool disabled) {
+    return EpuraPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const EpuraIconBubble(icon: Icons.cloud_download_outlined),
+              const SizedBox(width: AppTheme.spaceMD),
+              Expanded(
+                child: Text(
+                  l.downloadsInboxBody,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTheme.spaceMD),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: disabled ? null : _importDownloadedFiles,
+              icon: const Icon(Icons.download_outlined),
+              label: Text(l.addDownloadedFiles),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -350,8 +702,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final fileService = context.watch<FileService>();
+    final settings = context.watch<SettingsProvider>();
+    final stats = context.watch<StatsProvider>();
     final l = AppLocalizations.of(context)!;
     final items = fileService.items;
+    final reviewModes = availableReviewModes(fileService, settings);
+    final availableModeCount = reviewModes.length;
 
     final hasFreshData =
         !fileService.isLoading && !fileService.isBackgroundScanning;
@@ -392,48 +748,24 @@ class _HomeScreenState extends State<HomeScreen> {
         !fileService.isBackgroundScanning &&
         !fileService.isLoading;
 
-    Widget topContent;
+    Widget readinessContent;
     if (fileService.permissionDenied && totalCount == 0) {
-      topContent = Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppTheme.spaceLG),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.folder_off_outlined,
-                size: 64,
-                color: context.appColors.textTertiary,
-              ),
-              const SizedBox(height: AppTheme.spaceMD),
-              Text(
-                l.storageAccessNeeded,
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: AppTheme.spaceSM),
-              Text(
-                l.storageAccessExplanation,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: context.appColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: AppTheme.spaceLG),
-              ElevatedButton(onPressed: _scanFiles, child: Text(l.grantAccess)),
-              TextButton(
-                onPressed: openAppSettings,
-                child: Text(l.openSettings),
-              ),
-            ],
-          ),
-        ),
-      );
+      readinessContent = _buildAccessContent(context, l, availableModeCount);
     } else if (showScanProgress) {
-      topContent = _buildScanProgressCard(context, fileService, l);
+      readinessContent = _buildScanProgressContent(
+        context,
+        fileService,
+        l,
+        availableModeCount,
+      );
     } else if (showEmptyState) {
-      topContent = const EmptyState();
+      readinessContent = _buildEmptyReadinessContent(
+        context,
+        l,
+        availableModeCount,
+      );
     } else {
-      topContent = _buildReviewSummaryCard(
+      readinessContent = _buildReviewSummaryContent(
         context,
         l,
         fileService: fileService,
@@ -442,78 +774,53 @@ class _HomeScreenState extends State<HomeScreen> {
         photoCount: photoCount,
         videoCount: videoCount,
         downloadCount: downloadCount,
+        availableModeCount: availableModeCount,
       );
     }
 
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(AppTheme.spaceLG),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const SizedBox(width: 40),
-                  Text(
-                    l.appTitle,
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w200,
-                      letterSpacing: 4,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.settings_outlined),
-                    onPressed: () =>
-                        Navigator.pushNamed(context, EpuraApp.routeSettings),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppTheme.spaceXL),
-              Expanded(child: topContent),
-              const SizedBox(height: AppTheme.spaceLG),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: buttonsDisabled ? null : _startReview,
-                  child: Text(l.startReview),
-                ),
-              ),
-              const SizedBox(height: AppTheme.spaceMD),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: buttonsDisabled ? null : _importDownloadedFiles,
-                  icon: const Icon(Icons.download_outlined),
-                  label: Text(l.addDownloadedFiles),
-                ),
-              ),
-              if (fileService.hasImportedDocuments) ...[
-                const SizedBox(height: AppTheme.spaceXS),
-                TextButton(
-                  onPressed: buttonsDisabled ? null : _clearImportedFiles,
-                  child: Text(
-                    l.clearImportedFiles(fileService.importedDocumentCount),
-                  ),
-                ),
-              ],
-              const SizedBox(height: AppTheme.spaceMD),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: buttonsDisabled
-                      ? null
-                      : () => Navigator.pushNamed(context, EpuraApp.routeStats),
-                  child: Text(l.stats),
-                ),
-              ),
-            ],
+    final content = SafeArea(
+      child: ListView(
+        padding: const EdgeInsets.all(AppTheme.spaceLG),
+        children: [
+          EpuraTabTitle(
+            title: l.appTitle,
+            color: Theme.of(context).colorScheme.primary,
           ),
-        ),
+          const SizedBox(height: AppTheme.spaceLG),
+          _buildOverviewPanel(
+            context,
+            l,
+            stats: stats,
+            readinessContent: readinessContent,
+          ),
+          const SizedBox(height: AppTheme.spaceLG),
+          EpuraHeroAction(
+            icon: Icons.auto_awesome,
+            title: l.startReview,
+            subtitle: l.takeControlOfSpace,
+            disabled: buttonsDisabled,
+            onPressed: _startReview,
+          ),
+          const SizedBox(height: AppTheme.spaceLG),
+          EpuraSectionHeader(title: l.reviewModes),
+          const SizedBox(height: AppTheme.spaceSM),
+          ReviewModeGrid(
+            modes: reviewModes,
+            disabled: buttonsDisabled,
+            onSelect: (mode) => _startReview(reviewMode: mode),
+          ),
+          const SizedBox(height: AppTheme.spaceLG),
+          if (fileService.hasImportedDocuments)
+            _buildDownloadsInboxCard(l, fileService, buttonsDisabled)
+          else
+            _buildImportDownloadsCard(l, buttonsDisabled),
+          const SizedBox(height: AppTheme.spaceLG),
+        ],
       ),
     );
+
+    if (widget.embedded) return content;
+    return Scaffold(body: content);
   }
 }
 

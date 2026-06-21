@@ -1,0 +1,30 @@
+flowchart TD
+    swipeDelete["User marks item for deletion"]
+    pending["Item stays pending in ReviewProvider"]
+    sessionEnd["User reaches or exits session end"]
+    confirm{"User confirms deletion?"}
+    cancel["Discard or keep pending files"]
+    split["Split media library items from SAF/local items"]
+    mediaTrash["Try Android media trash"]
+    mediaDelete["Fallback to media delete request"]
+    safDelete["Delete selected document through SAF"]
+    localDelete["Delete local file path when available"]
+    outcome["Collect trashed, permanently deleted, and failed counts"]
+    memory["Clear or update local decision memory"]
+    summary["Show explicit deletion outcome"]
+
+    swipeDelete --> pending
+    pending --> sessionEnd
+    sessionEnd --> confirm
+    confirm -- "no" --> cancel
+    confirm -- "yes" --> split
+    split --> mediaTrash
+    mediaTrash --> mediaDelete
+    split --> safDelete
+    split --> localDelete
+    mediaTrash --> outcome
+    mediaDelete --> outcome
+    safDelete --> outcome
+    localDelete --> outcome
+    outcome --> memory
+    memory --> summary

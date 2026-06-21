@@ -12,6 +12,9 @@ class StatsProvider extends ChangeNotifier {
   int _totalDeleted = 0;
   int _streak = 0;
   int _weeklyBytesFreed = 0;
+  int _monthlyBytesFreed = 0;
+  int _monthlyFilesReviewed = 0;
+  int _monthlyDeleted = 0;
 
   bool get isLoading => _isLoading;
   double get loadProgress => _loadProgress;
@@ -21,6 +24,9 @@ class StatsProvider extends ChangeNotifier {
   int get totalDeleted => _totalDeleted;
   int get streak => _streak;
   int get weeklyBytesFreed => _weeklyBytesFreed;
+  int get monthlyBytesFreed => _monthlyBytesFreed;
+  int get monthlyFilesReviewed => _monthlyFilesReviewed;
+  int get monthlyDeleted => _monthlyDeleted;
 
   Future<void> loadStats(DatabaseService db) async {
     _isLoading = true;
@@ -52,6 +58,23 @@ class StatsProvider extends ChangeNotifier {
       _weeklyBytesFreed = _sessions
           .where((s) => s.date.isAfter(weekAgo))
           .fold(0, (sum, s) => sum + s.bytesFreed);
+
+      final now = DateTime.now();
+      final monthlySessions = _sessions
+          .where((s) => s.date.year == now.year && s.date.month == now.month)
+          .toList(growable: false);
+      _monthlyBytesFreed = monthlySessions.fold(
+        0,
+        (sum, session) => sum + session.bytesFreed,
+      );
+      _monthlyFilesReviewed = monthlySessions.fold(
+        0,
+        (sum, session) => sum + session.totalReviewed,
+      );
+      _monthlyDeleted = monthlySessions.fold(
+        0,
+        (sum, session) => sum + session.deletedCount,
+      );
     } finally {
       _isLoading = false;
       notifyListeners();

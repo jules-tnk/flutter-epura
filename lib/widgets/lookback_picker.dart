@@ -24,9 +24,7 @@ class LookbackPicker extends StatefulWidget {
   }) {
     return showModalBottomSheet<LookbackResult>(
       context: context,
-      builder: (_) => LookbackPicker(
-        lastReviewTimestamp: lastReviewTimestamp,
-      ),
+      builder: (_) => LookbackPicker(lastReviewTimestamp: lastReviewTimestamp),
     );
   }
 
@@ -97,7 +95,8 @@ class _LookbackPickerState extends State<LookbackPicker> {
               for (final days in [1, 3, 7, 14, 30])
                 _PickerChip(
                   label: days == 1 ? l.oneDay : l.nDays(days),
-                  selected: !_sinceLastReview && !_forever && _selectedDays == days,
+                  selected:
+                      !_sinceLastReview && !_forever && _selectedDays == days,
                   onTap: () => setState(() {
                     _sinceLastReview = false;
                     _forever = false;
@@ -119,10 +118,8 @@ class _LookbackPickerState extends State<LookbackPicker> {
           const SizedBox(height: AppTheme.spaceLG),
 
           ElevatedButton(
-            onPressed: () => Navigator.pop(
-              context,
-              LookbackResult(since: _computeCutoff()),
-            ),
+            onPressed: () =>
+                Navigator.pop(context, LookbackResult(since: _computeCutoff())),
             child: Text(l.startReview),
           ),
           const SizedBox(height: AppTheme.spaceSM),
@@ -151,7 +148,9 @@ class _PickerChip extends StatelessWidget {
       onSelected: (_) => onTap(),
       selectedColor: Theme.of(context).colorScheme.primary.withAlpha(51),
       labelStyle: TextStyle(
-        color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
+        color: selected
+            ? Theme.of(context).colorScheme.primary
+            : Theme.of(context).colorScheme.onSurface,
         fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
       ),
     );

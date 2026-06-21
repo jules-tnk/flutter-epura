@@ -14,8 +14,9 @@ abstract interface class DocumentAccessService {
 }
 
 class MethodChannelDocumentAccessService implements DocumentAccessService {
-  static const MethodChannel _channel =
-      MethodChannel('com.epura.cleaner/document_access');
+  static const MethodChannel _channel = MethodChannel(
+    'com.epura.cleaner/document_access',
+  );
 
   const MethodChannelDocumentAccessService();
 
@@ -42,20 +43,18 @@ class MethodChannelDocumentAccessService implements DocumentAccessService {
   @override
   Future<bool> deleteDocument(String uri) async {
     if (!Platform.isAndroid) return false;
-    final result = await _channel.invokeMethod<bool>(
-      'deleteDocument',
-      {'uri': uri},
-    );
+    final result = await _channel.invokeMethod<bool>('deleteDocument', {
+      'uri': uri,
+    });
     return result ?? false;
   }
 
   @override
   Future<void> releasePersistedUriPermission(String uri) async {
     if (!Platform.isAndroid) return;
-    await _channel.invokeMethod<void>(
-      'releasePersistedUriPermission',
-      {'uri': uri},
-    );
+    await _channel.invokeMethod<void>('releasePersistedUriPermission', {
+      'uri': uri,
+    });
   }
 
   List<StorageDocument> _parseDocuments(List<Object?>? raw) {
@@ -75,8 +74,10 @@ class MethodChannelDocumentAccessService implements DocumentAccessService {
     Map<String, Object?>? arguments,
   }) async {
     if (!Platform.isAndroid) return null;
-    final raw =
-        await _channel.invokeMethod<Map<Object?, Object?>>(method, arguments);
+    final raw = await _channel.invokeMethod<Map<Object?, Object?>>(
+      method,
+      arguments,
+    );
     return raw == null ? null : _normalizeMap(raw);
   }
 

@@ -4,12 +4,12 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+import 'reminder_copy.dart';
+
 class NotificationService {
   static const int _reminderId = 0;
   static const String _channelId = 'epura_reminders';
   static const String _channelName = 'Cleanup Reminders';
-  static const String _title = 'Time to clean up!';
-  static const String _body = 'Take a moment to review your files';
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
@@ -21,14 +21,17 @@ class NotificationService {
     final tzInfo = await FlutterTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(tzInfo.identifier));
 
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const initSettings = InitializationSettings(android: androidSettings);
 
     await _plugin.initialize(settings: initSettings);
 
-    _androidPlugin = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    _androidPlugin = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
 
     await _androidPlugin?.createNotificationChannel(
       const AndroidNotificationChannel(
@@ -52,8 +55,7 @@ class NotificationService {
   Future<bool> requestPermission() async {
     if (_androidPlugin == null) return true;
 
-    final notifGranted =
-        await _androidPlugin!.requestNotificationsPermission();
+    final notifGranted = await _androidPlugin!.requestNotificationsPermission();
     if (!(notifGranted ?? false)) return false;
 
     await requestExactAlarmPermission();
@@ -65,8 +67,9 @@ class NotificationService {
   Future<DateTime> scheduleReminder(
     TimeOfDay time,
     String interval,
-    int dayOfWeek,
-  ) async {
+    int dayOfWeek, {
+    String? localeCode,
+  }) async {
     await cancelReminder();
 
     final now = tz.TZDateTime.now(tz.local);
@@ -112,10 +115,15 @@ class NotificationService {
       }
     }
 
+    final copy = ReminderCopy.forSettings(
+      interval: interval,
+      localeCode: localeCode,
+    );
+
     await _plugin.zonedSchedule(
       id: _reminderId,
-      title: _title,
-      body: _body,
+      title: copy.title,
+      body: copy.body,
       scheduledDate: scheduledDate,
       notificationDetails: notificationDetails,
       androidScheduleMode: scheduleMode,

@@ -1,0 +1,33 @@
+flowchart TD
+    scan["Scan inputs"]
+    items["ReviewItem queue"]
+    decision["User decisions"]
+    deletion["Deletion outcome"]
+    session["Review session summary"]
+    drift["Drift database"]
+    prefs["SharedPreferences"]
+    cache["Thumbnail/scan cache"]
+    ui["UI state"]
+
+    scan --> items
+    items --> ui
+    decision --> ui
+    decision --> deletion
+    deletion --> session
+    session --> drift
+    decision --> drift
+    scan --> drift
+    scan --> cache
+    prefs --> scan
+    prefs --> ui
+
+    subgraph Durable["Durable local state"]
+        drift
+        prefs
+    end
+
+    subgraph Transient["Transient or disposable state"]
+        items
+        ui
+        cache
+    end
