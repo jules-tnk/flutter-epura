@@ -65,7 +65,7 @@
       grid-template-columns: minmax(0, 0.95fr) minmax(320px, 0.7fr);
       align-items: center;
       gap: clamp(36px, 7vw, 108px);
-      padding: clamp(24px, 5vw, 72px);
+      padding: clamp(24px, 4.5vw, 64px);
       background:
         linear-gradient(115deg, rgba(255, 255, 255, 0.96) 0%, rgba(246, 248, 251, 0.94) 48%, rgba(229, 242, 255, 0.86) 100%),
         radial-gradient(circle at 82% 20%, rgba(47, 142, 232, 0.28), transparent 34%);
@@ -75,7 +75,7 @@
       display: inline-flex;
       align-items: center;
       gap: 12px;
-      margin-bottom: clamp(40px, 8vw, 96px);
+      margin-bottom: clamp(32px, 6vw, 72px);
       font-size: 18px;
       letter-spacing: 0.28em;
       text-transform: lowercase;
@@ -96,14 +96,14 @@
     h1 {
       margin: 0;
       max-width: 680px;
-      font-size: clamp(54px, 9vw, 126px);
+      font-size: clamp(54px, 8vw, 112px);
       line-height: 0.92;
       letter-spacing: 0;
     }
 
     .hero-copy p {
       max-width: 570px;
-      margin: 28px 0 30px;
+      margin: 24px 0 26px;
       color: var(--muted);
       font-size: clamp(18px, 2vw, 23px);
       line-height: 1.5;
@@ -142,46 +142,75 @@
 
     .phone-stack {
       position: relative;
-      min-height: min(820px, 86svh);
+      display: grid;
+      place-items: center;
+      min-height: min(760px, 82svh);
+      isolation: isolate;
       animation: settle 760ms 120ms ease both;
     }
 
-    .screenshot {
-      position: absolute;
-      width: min(320px, 38vw);
-      max-width: 78%;
-      border-radius: 34px;
-      box-shadow: var(--shadow);
+    .phone-frame,
+    .screenshot-card {
       background: var(--white);
-      transition: transform 240ms ease, box-shadow 240ms ease;
+      box-shadow: var(--shadow);
     }
 
-    .screenshot:hover {
-      transform: translateY(-8px) rotate(0deg);
-      box-shadow: 0 34px 84px rgba(21, 25, 34, 0.2);
+    .phone-frame {
+      position: relative;
+      z-index: 3;
+      width: min(330px, 31vw);
+      padding: 10px;
+      border: 1px solid rgba(21, 25, 34, 0.08);
+      border-radius: 42px;
+      transform: translateX(2%);
     }
 
-    .screenshot.primary {
-      right: 8%;
-      top: 0;
+    .phone-frame::before {
+      content: "";
+      position: absolute;
+      top: 17px;
+      left: 50%;
       z-index: 2;
-      transform: rotate(1.5deg);
+      width: 86px;
+      height: 20px;
+      border-radius: 999px;
+      background: rgba(21, 25, 34, 0.08);
+      transform: translateX(-50%);
     }
 
-    .screenshot.secondary {
-      left: 2%;
-      bottom: 0;
-      z-index: 1;
-      transform: rotate(-4deg) scale(0.86);
-      opacity: 0.9;
+    .phone-frame img,
+    .screenshot-card img {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: var(--white);
     }
 
-    .screenshot.tertiary {
-      right: 0;
-      bottom: 54px;
+    .phone-frame img {
+      border-radius: 32px;
+    }
+
+    .screenshot-card {
+      position: absolute;
       z-index: 1;
-      transform: rotate(4deg) scale(0.78);
-      opacity: 0.94;
+      width: min(210px, 18vw);
+      max-height: min(390px, 52svh);
+      overflow: hidden;
+      border: 1px solid rgba(21, 25, 34, 0.07);
+      border-radius: 28px;
+      opacity: 0.46;
+    }
+
+    .screenshot-card.stats {
+      left: 8%;
+      top: 18%;
+      transform: rotate(-4deg);
+    }
+
+    .screenshot-card.settings {
+      right: 2%;
+      bottom: 16%;
+      transform: rotate(3deg);
     }
 
     .section {
@@ -420,29 +449,17 @@
       }
 
       .phone-stack {
-        min-height: 980px;
+        min-height: 660px;
         margin-top: 24px;
       }
 
-      .screenshot {
-        width: min(260px, 66vw);
+      .phone-frame {
+        width: min(330px, 72vw);
+        transform: none;
       }
 
-      .screenshot.primary {
-        right: 0;
-        top: 0;
-      }
-
-      .screenshot.secondary {
-        left: 0;
-        top: 220px;
-        bottom: auto;
-      }
-
-      .screenshot.tertiary {
-        right: 0;
-        top: 440px;
-        bottom: auto;
+      .screenshot-card {
+        display: none;
       }
 
       .feature-line {
@@ -478,7 +495,7 @@
       }
 
       .phone-stack {
-        min-height: 930px;
+        min-height: 600px;
       }
 
       .hero-copy {
@@ -500,17 +517,13 @@
         max-width: min(330px, calc(100vw - 40px));
       }
 
-      .screenshot {
-        border-radius: 24px;
-        width: min(240px, 68vw);
+      .phone-frame {
+        width: min(280px, 78vw);
+        border-radius: 34px;
       }
 
-      .screenshot.secondary {
-        top: 210px;
-      }
-
-      .screenshot.tertiary {
-        top: 420px;
+      .phone-frame img {
+        border-radius: 26px;
       }
 
       .footer-inner {
@@ -547,9 +560,15 @@
       </div>
 
       <div class="phone-stack" aria-label="Epura app screenshots">
-        <img class="screenshot primary" src="screenshots/home.png" width="1080" height="2195" alt="Epura home screen showing storage status and review modes">
-        <img class="screenshot secondary" src="screenshots/stats.png" width="1080" height="2195" alt="Epura stats screen showing reviewed files, streak, and sessions">
-        <img class="screenshot tertiary" src="screenshots/settings.png" width="1080" height="2195" alt="Epura settings screen for appearance, reminders, language, and file types">
+        <div class="screenshot-card stats" aria-hidden="true">
+          <img src="screenshots/stats.png" width="1080" height="2195" alt="">
+        </div>
+        <div class="phone-frame">
+          <img src="screenshots/home.png" width="1080" height="2195" alt="Epura home screen showing storage status and review modes">
+        </div>
+        <div class="screenshot-card settings" aria-hidden="true">
+          <img src="screenshots/settings.png" width="1080" height="2195" alt="">
+        </div>
       </div>
     </section>
 
